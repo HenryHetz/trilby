@@ -35,8 +35,14 @@ export function initEmojiWidget(scene) {
     const icon = scene.add
         .image(centerX, centerY, 'smileys', 1)
         .setOrigin(0.5)
+        .setScale(1.2)
         .setDepth(100)
         .setInteractive();
+    icon.defaults = {
+        scale: 1.2
+    }
+
+    let lastLineNumber = 0
 
     const veer = []
     const startAngle = 60; // deg
@@ -69,10 +75,11 @@ export function initEmojiWidget(scene) {
             .setAlpha(0)
             .setInteractive()
             .on("pointerdown", () => {
-                // console.log("veer[index] touch", index, iconNumber);
+                console.log("line touch", index);
                 changeFrame(icon, iconNumber)
                 if (veer[index].container.visible) veer[index].container.visible = 0
                 else veer[index].container.visible = 1
+                lastLineNumber = index
             }, veer[index]);
         veer[index].startPosition = startPosition
         veer[index].finishPosition = finishPosition
@@ -97,11 +104,12 @@ export function initEmojiWidget(scene) {
             .setOrigin(0.5)
             .setDepth(100)
             .setAlpha(0.8)
-            // .setInteractive()
-            // .on("pointerdown", () => {
-            //     // console.log("veer[index] touch", index, iconNumber);
-            //     changeFrame(icon, iconNumber)
-            // });
+            .setInteractive()
+            .on("pointerdown", () => {
+                console.log("veer[index] touch", index, iconNumber);
+                // lastLineNumber = index
+                // changeFrame(icon, iconNumber)
+            });
 
             veer[index].container.add(veer[index].line[i])
         }
@@ -119,10 +127,13 @@ export function initEmojiWidget(scene) {
                 veerIsOpen = false
             } else {
                 // отправка?
+                openVeer(scene, veer, icon, true)
+                veerIsOpen = true
             }
         },
         onSwipeUp(pointer, icon) {
             console.log('SWIPE UP: open fan / text');
+            // отправка
         },
         onSwipeLeft(pointer, icon) {
             console.log('SWIPE LEFT');
@@ -143,7 +154,10 @@ export function initEmojiWidget(scene) {
             if (veerIsOpen) {
                 openVeer(scene, veer, icon, false)
                 veerIsOpen = false
-            } else changeFrame(icon)
+            } else {
+                // changeFrame(icon)
+                changeFrameByLine(scene, veer , icon, lastLineNumber)
+            }
                 
             // {
             //     const COLS = 16;
@@ -369,11 +383,11 @@ function openVeer(scene, veer, icon, state) {
             // x: icon.finishPosition.x,
             // y: icon.finishPosition.y,
             alpha: 1,
-            scale: 1.2,
+            scale: icon.defaults.scale * 1.2,
             duration: duration,
             ease: "Back.easeOut", // 'Quad.easeOut'
             onComplete: () => {
-                icon.scale = 1
+                icon.scale = icon.defaults.scale
             },
         });
     }
@@ -409,4 +423,17 @@ function changeFrame (icon, number) {
     const col = Phaser.Math.Between(0, COLS - 1);
     icon.setFrame(idx(row, col));
     }
+}
+function changeFrameByLine (scene, veer, icon, number) {
+    console.log('changeFrameByLine: ', number, veer[number].line.length);
+    const i = Phaser.Math.Between(0, veer[number].line.length -1);
+    const image = veer[number].line[i]
+    const name = image.frame.name
+    // const COLS = 16;
+    // const ROWS = 7;
+    // const idx = (row, col) => row * COLS + col;
+    // const row = Phaser.Math.Between(0, ROWS - 1);
+    // const col = Phaser.Math.Between(0, COLS - 1);
+    console.log('changeFrameByLine: ', i, name);
+    icon.setFrame(name);
 }
