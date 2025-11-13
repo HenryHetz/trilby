@@ -42,6 +42,7 @@ export function initEmojiWidget(scene) {
         scale: 1.2
     }
 
+    // веер
     let lastLineNumber = 0
 
     const veer = []
@@ -51,10 +52,16 @@ export function initEmojiWidget(scene) {
 
     for (let index = 0; index < 5; index++) {
 
+        // раскрыть веером по окружности
         const angle = startAngle - angleTurn * index
         const angleToRad = Phaser.Math.DegToRad(angle);
         const x = centerX - gap * Math.cos(angleToRad)
         const y = centerY  - (gap + 40) * Math.sin(angleToRad)
+        
+        // раскрыть в наклонную линию
+        // const x = centerX - 80 * index
+        // const y = centerY  - 40 * index
+        
         const iconNumber = index * 20
 
         const startPosition = {
@@ -62,10 +69,17 @@ export function initEmojiWidget(scene) {
             y: centerY - 60 * Math.sin(angleToRad)
         }
 
+        // радиус
         const finishPosition = {
             x: centerX - gap * Math.cos(angleToRad),
             y: centerY - (gap + 40) * Math.sin(angleToRad)
         }
+        
+        // наклонная
+        // const finishPosition = {
+        //     x: centerX + 40 - 40 * (index + 1),
+        //     y: centerY - 240  + 60 * (index + 1)        
+        // }
 
         veer[index] = scene.add
             // .image(centerX - 60, centerY + 120 - index * 60, 'smileys', index + 5)
@@ -170,6 +184,9 @@ export function initEmojiWidget(scene) {
         },
         onSwipeDown(pointer, icon) {
             console.log('SWIPE DOWN');
+            lastLineNumber += 1
+            if (lastLineNumber > veer.length - 1) lastLineNumber = 0
+            changeLine(scene, veer , icon, lastLineNumber)
         }
     }, veer);
 
@@ -299,6 +316,7 @@ function attachEmojiGestures(scene, icon, areaRect, graphics, handlers = {}, vee
         const dx = pointer.x - startX;
         const dy = pointer.y - startY;
         const dist = Phaser.Math.Distance.Between(startX, startY, pointer.x, pointer.y);
+        // console.log('dist: ', dist, 'dx: ',dx, 'dy: ',dy);
 
         // TAP — только если начали на самой иконке
         if (startedOnIcon &&
@@ -317,15 +335,39 @@ function attachEmojiGestures(scene, icon, areaRect, graphics, handlers = {}, vee
                 } else {
                     handlers.onSwipeLeft && handlers.onSwipeLeft(pointer, iconRef);
                 }
+                // iconReflex(iconRef, dx, 0)
             } else {
                 if (dy < 0) {
                     handlers.onSwipeUp && handlers.onSwipeUp(pointer, iconRef);
                 } else {
                     handlers.onSwipeDown && handlers.onSwipeDown(pointer, iconRef);
                 }
+                // iconReflex(iconRef, 0, dy)
             }
+            iconReflex(scene, iconRef, dx, dy)
         }
     });
+}
+
+function iconReflex(scene, icon, dx, dy) {
+    // console.log('iconReflex: ', icon, dx, dy);
+    const offsetX = dx * 0.1; // величина отклонения (чуть больше для отзывчивости)
+    const offsetY = dy * 0.1;
+
+    scene.tweens.add({
+            targets: icon,
+            x: icon.x + offsetX,
+            y: icon.y + offsetY,
+            // alpha: 0.5,
+            // scale: 1.1,
+            duration: 30,
+            ease: "Sine.easeOut", // 'Back.easeOut' Sine.easeOut
+            yoyo: true,
+            onComplete: () => {
+                icon.setPosition(icon.x, icon.y);
+            },
+        });
+    
 }
 
 function openVeer(scene, veer, icon, state) {
@@ -435,5 +477,12 @@ function changeFrameByLine (scene, veer, icon, number) {
     // const row = Phaser.Math.Between(0, ROWS - 1);
     // const col = Phaser.Math.Between(0, COLS - 1);
     console.log('changeFrameByLine: ', i, name);
+    icon.setFrame(name);
+}
+function changeLine (scene, veer , icon, number) {
+    console.log('changeLine line number: ', number);
+    // const i = Phaser.Math.Between(0, veer[number].line.length -1);
+    const image = veer[number] // надо veer[number].line[0]
+    const name = image.frame.name
     icon.setFrame(name);
 }
