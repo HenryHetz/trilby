@@ -5,6 +5,8 @@
 import { initEmojiWidget } from './emojiWidget.js';
 import { StateMonitor } from './StateMonitor.js';
 
+import EmoChat from './EmoChat.js';
+
 // ---------------- Config ----------------
 const CANVAS_WIDTH = 640;
 const CANVAS_HEIGHT = 1120;
@@ -311,7 +313,7 @@ class ArenaScene extends Phaser.Scene {
         this.modeText = this.add
             .text(20, 60, 'SURVIVAL', {
                 font: "16px CyberFont",
-                fill: this.textColors.gray,
+                fill: this.textColors.red,
             }).setAlpha(1)
             .setOrigin(0, 0.5)
             .setDepth(20)
@@ -328,7 +330,7 @@ class ArenaScene extends Phaser.Scene {
         this.depoCounter = this.add
             .text(505, 60, this.deposit.toFixed(2), {
                 font: "16px CyberFont",
-                fill: this.textColors.gray,
+                fill: this.textColors.red,
             }).setAlpha(1)
             .setOrigin(0, 0.5)
             .setDepth(20)
@@ -534,7 +536,9 @@ class ArenaScene extends Phaser.Scene {
         // });
 
         // ЭмоЧат
-        initEmojiWidget(this);
+        // initEmojiWidget(this);
+
+        this.emoChat = new EmoChat(this, 560, 930)
 
         this.iconSettings = this.add
             .image(50, 820, "icon_settings")
