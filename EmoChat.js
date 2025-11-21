@@ -34,7 +34,7 @@ export default class EmoChat {
             FEED_HEIGHT: 360,
             MENU_WIDTH: 540,
             MENU_HEIGHT: 300,
-            MESSAGE_LENGTH: 3
+            MESSAGE_LENGTH: 4
         };
     }
     init() {
@@ -329,13 +329,18 @@ export default class EmoChat {
 
         // если длина достигла лимита — потом сюда воткнём отправку в фид
         if (this.message.line.length >= this.config.MESSAGE_LENGTH) {
-            // this.commitMessage();
-            // this.clearMessageLine();
+            this.commitMessage();
+            this.clearMessageLine();
         }
 
         this.updateMessageLine();
     }
-
+    commitMessage() {
+        // отправляем в чат
+    }
+    clearMessageLine() {
+        this.message.line.length = 0
+    }
     updateMessageLine() {
         const line = this.message.line;
         const sprites = this.message.sprites;
