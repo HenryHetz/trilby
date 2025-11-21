@@ -101,12 +101,22 @@ export default class EmoChat {
         // const cat = this.categories.find(c => c.name === 'POSITIVE');
         // console.table(cat.icons);
     }
+    update() {
+        // console.log('update')
+        // this.timer.update() 
+    }
     create() {
         this.createMenu()
         this.createButton()
         this.createHelper()
         this.createFeed()
         this.createMessage()
+
+        // this.timer = new EmoChat.Timer(
+        //     this.scene,
+        //     this.feed.messageLineBG.startX + 124, // подгони координаты возле плашки
+        //     this.feed.messageLineBG.startY
+        // );
 
     }
     createButton() {
@@ -325,12 +335,19 @@ export default class EmoChat {
     }
     addEmoToLine(emoFrame) {
         // TODO: позже добавим проверки на длину/ширину и веса слов
-        this.message.line.push(emoFrame);
+        if (emoFrame) this.message.line.push(emoFrame);
+        else if (this.message.line.length > 0) this.message.line.pop()
+
+        // if (this.message.line.length === 1) this.timer.start(5000, )
 
         // если длина достигла лимита — потом сюда воткнём отправку в фид
         if (this.message.line.length >= this.config.MESSAGE_LENGTH) {
-            this.commitMessage();
-            this.clearMessageLine();
+            setTimeout(() => {
+                this.commitMessage();
+                this.clearMessageLine();
+                this.updateMessageLine();
+                // this.timer.stop()
+            }, 700);
         }
 
         this.updateMessageLine();
@@ -410,12 +427,13 @@ export default class EmoChat {
         this.feed.bg.fillStyle(0x000000, 0.5); // 0x212838
         this.feed.bg.fillRoundedRect(this.config.FEED_X, this.config.FEED_Y, this.config.FEED_WIDTH, this.config.FEED_HEIGHT, 12);
 
+        // подложка нашего набора
         this.feed.messageLineBG = this.scene.add.graphics();
         this.feed.messageLineBG.fillStyle(0x212838, 1);
-        this.feed.messageLineBG.fillRoundedRect(this.config.FEED_X + 5, this.config.FEED_Y + this.config.FEED_HEIGHT - 35, this.config.FEED_WIDTH - 10, 30, 15);
+        this.feed.messageLineBG.fillRoundedRect(this.config.FEED_X, this.config.FEED_Y + this.config.FEED_HEIGHT - 40, this.config.FEED_WIDTH, 40, 20);
         this.feed.messageLineBG.startX = this.config.FEED_X + 5
         this.feed.messageLineBG.startY = this.config.FEED_Y + this.config.FEED_HEIGHT - 20
-        
+
         this.feed.container.add([this.feed.bg, this.feed.frame, this.feed.messageLineBG])
     }
     createFeedInsert() {
@@ -531,7 +549,7 @@ export default class EmoChat {
                 } else {
                     // вертикаль
                     if (dy < 0) this.sendEmoji();     // вверх — отправка эмоции
-                    else this.nextCategory();         // вниз — смена категории
+                    else this.undoEmoji() // this.nextCategory();         // вниз — смена категории
 
                     this.buttonIconlineMove(this.button.icon, 0, dy)
                 }
@@ -545,6 +563,10 @@ export default class EmoChat {
     nextIcon() { console.log('next icon'); }
     prevIcon() { console.log('prev icon'); }
     nextCategory() { console.log('next category'); }
+    undoEmoji() {
+        console.log('undoEmoji')
+        this.addEmoToLine(false)
+    }
     sendEmoji() {
         console.log('send emoji', this.state.currentEmo)
         // const emote = this.categories[this.currentCategory].icons[this.currentIcon];
@@ -585,4 +607,56 @@ export default class EmoChat {
         }
     }
 
+
+
+
+}
+// таймер-часики
+EmoChat.Timer = class {
+    constructor(scene, x, y, radius = 15, color = 0xff4444) {
+        this.scene = scene;
+        this.radius = radius;
+        this.duration = 5000;   // по умолчанию 5 сек
+        this.startTime = 0;
+        this.active = false;
+        this.onComplete = null;
+
+        this.container = scene.add.container(x, y).setDepth(999);
+
+        // кольцо
+        const ring = scene.add.graphics();
+        ring.lineStyle(2, color, 1);
+        ring.strokeCircle(0, 0, radius - 2);
+
+        // стрелка (от центра вверх)
+        const hand = scene.add.graphics();
+        hand.lineStyle(2, color, 1);
+        hand.lineBetween(0, 0, 0, -(radius - 5));
+
+        this.container.add([ring, hand]);
+        this.hand = hand;
+        this.container.setVisible(true);
+        this.container.setDepth(999)
+    }
+
+    start(duration, onComplete) {
+        this.container.setVisible(true);
+        this.container.rotation = 0;
+
+        this.scene.tweens.add({
+            targets: this.container,
+            rotation: Math.PI * 2,
+            duration: duration,
+            ease: 'Linear',
+            onComplete: () => {
+                this.container.setVisible(false);
+                if (onComplete) onComplete();
+            }
+        });
+    }
+
+    stop() {
+        this.active = false;
+        this.container.setVisible(false);
+    }
 }
