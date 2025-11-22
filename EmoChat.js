@@ -117,7 +117,7 @@ export default class EmoChat {
         this.createFeed()
         this.createMessage()
         this.createGestureSchemes()
-        this.currentScheme = this.gestureSchemes[3];
+        this.currentScheme = this.gestureSchemes[0];
         this.updateHelper(this.currentScheme)
 
         // this.timer = new EmoChat.Timer(
