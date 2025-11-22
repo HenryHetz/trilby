@@ -223,34 +223,34 @@ export default class EmoChat {
             }
         }
 
-        // закрывашка-открывашка хелпера
-        this.helperCloser = {}
-        this.helperCloser.container = this.scene.add.container(0, 0).setDepth(999)
-        this.helperCloser.state = true
+        // закрывашка-открывашка меню
+        this.menuCloser = {}
+        // this.menuCloser.container = this.scene.add.container(0, 0).setDepth(999)
+        this.menuCloser.state = true
 
         const x = this.config.BUTTON_X + 40
-        const y = this.config.BUTTON_Y - 120
+        const y = this.config.BUTTON_Y + 120
 
         const buttonW = 60;
         const buttonH = 40;
         const buttonRadius = 10
 
-        this.helperCloser.button = this.scene.add.graphics();
-        this.helperCloser.button.fillStyle(0x212838, 1);
-        this.helperCloser.button.fillRoundedRect(x - buttonW / 2, y - buttonH / 2, buttonW, buttonH, buttonRadius)
+        this.menuCloser.button = this.scene.add.graphics();
+        this.menuCloser.button.fillStyle(0x212838, 1);
+        this.menuCloser.button.fillRoundedRect(x - buttonW / 2, y - buttonH / 2, buttonW, buttonH, buttonRadius)
         // .setInteractive() // это не объект, он не может быть интерактивным...
         // .on('pointerdown', () => {
         //     if (this.helper.container.visible) {
         //         this.helper.container.visible = 0
-        //         this.helperCloser.text.setText('OPEN\nHELP')
+        //         this.menuCloser.text.setText('OPEN\nHELP')
         //     }
         //     else {
         //         this.helper.container.visible = 1
-        //         this.helperCloser.text.setText('CLOSE\nHELP')
+        //         this.menuCloser.text.setText('CLOSE\nHELP')
         //     }
         // })
 
-        this.helperCloser.text = this.scene.add.text(x, y, 'CLOSE\nHELP', {
+        this.menuCloser.text = this.scene.add.text(x, y, 'CLOSE\nMENU', {
             font: '12px Helvetica',
             fill: '#ffee00ff',
         })
@@ -259,19 +259,19 @@ export default class EmoChat {
             .setAlign('center')
             .setInteractive()
             .on('pointerdown', () => {
-                if (this.helper.container.visible) {
-                    this.helper.container.visible = 0
-                    this.helperCloser.text.setText('OPEN\nHELP')
-                    this.helperCloser.state = false
+                if (this.menu.container.visible) {
+                    this.menu.container.visible = 0
+                    this.menuCloser.text.setText('OPEN\nMENU')
+                    this.menuCloser.state = false
                 }
                 else {
-                    this.helper.container.visible = 1
-                    this.helperCloser.text.setText('CLOSE\nHELP')
-                    this.helperCloser.state = true
+                    this.menu.container.visible = 1
+                    this.menuCloser.text.setText('CLOSE\nMENU')
+                    this.menuCloser.state = true
                 }
             })
 
-        this.helperCloser.container.add([this.helperCloser.button, this.helperCloser.text])
+        this.menu.container.add([this.menuCloser.button, this.menuCloser.text])
 
     }
     createHelper() {
@@ -318,6 +318,55 @@ export default class EmoChat {
 
         this.helper.container.add([this.helper.bg, this.helper.frame, this.helper.top, this.helper.text])
         
+        // закрывашка-открывашка хелпера
+        this.helperCloser = {}
+        this.helperCloser.container = this.scene.add.container(0, 0).setDepth(999)
+        this.helperCloser.state = true
+
+        const closerX = this.config.BUTTON_X + 40
+        const closerY = this.config.BUTTON_Y - 120
+
+        const buttonW = 60;
+        const buttonH = 40;
+        const buttonRadius = 10
+
+        this.helperCloser.button = this.scene.add.graphics();
+        this.helperCloser.button.fillStyle(0x212838, 1);
+        this.helperCloser.button.fillRoundedRect(closerX - buttonW / 2, closerY - buttonH / 2, buttonW, buttonH, buttonRadius)
+        // .setInteractive() // это не объект, он не может быть интерактивным...
+        // .on('pointerdown', () => {
+        //     if (this.helper.container.visible) {
+        //         this.helper.container.visible = 0
+        //         this.helperCloser.text.setText('OPEN\nHELP')
+        //     }
+        //     else {
+        //         this.helper.container.visible = 1
+        //         this.helperCloser.text.setText('CLOSE\nHELP')
+        //     }
+        // })
+
+        this.helperCloser.text = this.scene.add.text(closerX, closerY, 'CLOSE\nHELP', {
+            font: '12px Helvetica',
+            fill: '#ffee00ff',
+        })
+            .setAlpha(1)
+            .setOrigin(0.5)
+            .setAlign('center')
+            .setInteractive()
+            .on('pointerdown', () => {
+                if (this.helper.container.visible) {
+                    this.helper.container.visible = 0
+                    this.helperCloser.text.setText('OPEN\nHELP')
+                    this.helperCloser.state = false
+                }
+                else {
+                    this.helper.container.visible = 1
+                    this.helperCloser.text.setText('CLOSE\nHELP')
+                    this.helperCloser.state = true
+                }
+            })
+
+        this.helperCloser.container.add([this.helperCloser.button, this.helperCloser.text])
         
     }
     createMessage(reply, occasion, emos) {
@@ -381,16 +430,8 @@ export default class EmoChat {
         // if (this.message.line.length === 1) this.timer.start(5000, )
 
         // если длина достигла лимита — потом сюда воткнём отправку в фид
-        if (this.message.line.length >= this.config.MESSAGE_LENGTH) {
-            // может другую строку набирать? или одной достаточно?
-            // this.sendMessage();
-            // this.clearMessageLine();
-            // setTimeout(() => {
-            //     this.commitMessage();
-            //     this.clearMessageLine();
-            //     this.updateMessageLine();
-            //     // this.timer.stop()
-            // }, 700);
+        if (this.message.line.length === this.config.MESSAGE_LENGTH) {
+            this.button.icon.setFrame(117)
         }
 
         this.updateMessageLine();
@@ -637,7 +678,10 @@ export default class EmoChat {
         // scene.input.on('pointermove', ...)  → можно добавить потом.
     }
     // методы для жестов
-    nextIcon() { console.log('next icon'); }
+    nextIcon() { 
+        if (this.menu.container.visible) this.toggleMenu()
+        else console.log('next icon'); 
+    }
     prevIcon() { console.log('prev icon'); }
     nextCategory() { console.log('next category'); }
     undoEmoji() {
@@ -671,6 +715,7 @@ export default class EmoChat {
             this.updateMessageLine();
             // this.timer.stop()
         }, 100);
+        this.button.icon.setFrame(1) // нужно ставить последнюю иконку, или предикцию...
     }
     // вспомогательные методы
     buttonIconlineMove(icon, dx, dy) {
