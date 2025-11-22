@@ -548,7 +548,8 @@ class ArenaScene extends Phaser.Scene {
             .setDepth(20)
             .setInteractive()
             .on("pointerdown", () => {
-                console.log("iconSettings touch");
+                // console.log("iconSettings touch");
+                this.emoChat.switchGestureScheme()
             });
     }
     create() {

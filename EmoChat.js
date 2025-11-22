@@ -34,7 +34,8 @@ export default class EmoChat {
             FEED_HEIGHT: 360,
             MENU_WIDTH: 540,
             MENU_HEIGHT: 300,
-            MESSAGE_LENGTH: 4
+            MESSAGE_LENGTH: 4,
+            DOUBLE_TAP_DELAY: 250
         };
     }
     init() {
@@ -44,7 +45,8 @@ export default class EmoChat {
         this.initCategories()
 
         // 
-
+        this.lastTapTime = 0;
+        this.tapTimeoutId = null;
     }
     initArea() {
         // область жестов
@@ -79,7 +81,9 @@ export default class EmoChat {
     }
     initState() {
         this.state = {
-            currentEmo: undefined
+            currentCat: 0, // 'POSITIVE'?
+            currentEmo: undefined,
+
         }
 
         this.state.update = object => {
@@ -92,7 +96,7 @@ export default class EmoChat {
     }
     initCategories() {
         const categoryNames = ['POSITIVE', 'NEGATIVE', 'FUN', 'REACTION', 'WORDS'];
-        const iconsPerCategory = 8; // сколько кадров у каждой категории
+        const iconsPerCategory = 6; // сколько кадров у каждой категории
         this.categories = categoryNames.map(name => ({
             name,
             icons: Array.from({ length: iconsPerCategory }, (_, i) => `${name}_${i}`)
@@ -111,6 +115,9 @@ export default class EmoChat {
         this.createHelper()
         this.createFeed()
         this.createMessage()
+        this.createGestureSchemes()
+        this.currentScheme = this.gestureSchemes[0];
+        this.updateHelper(this.currentScheme)
 
         // this.timer = new EmoChat.Timer(
         //     this.scene,
@@ -164,7 +171,7 @@ export default class EmoChat {
         // подложка
         this.menu.bg = this.scene.add.graphics();
         this.menu.bg.fillStyle(0x000000, 0.5);
-        this.menu.bg.fillRoundedRect(this.config.BUTTON_X - this.config.MENU_WIDTH, this.config.BUTTON_Y - this.config.MENU_HEIGHT / 2, this.config.MENU_WIDTH, this.config.MENU_HEIGHT, 30);
+        this.menu.bg.fillRoundedRect(this.config.BUTTON_X - this.config.MENU_WIDTH+100, this.config.BUTTON_Y - this.config.MENU_HEIGHT / 2, this.config.MENU_WIDTH, this.config.MENU_HEIGHT, 30);
         this.menu.bg.defaults = {
             alpha: 0.8
         }
@@ -184,12 +191,15 @@ export default class EmoChat {
 
             const wrapper = this.scene.add.graphics()
                 .fillStyle(0x212838, 1)
-                .fillRoundedRect(x + 95, y - 25, 410, 50, 25)
+                .fillRoundedRect(x + 210, y - 25, 300, 50, 25) // .fillRoundedRect(x + 95, y - 25, 410, 50, 25)
             this.menu.container.add(wrapper)
 
             const category = this.categories[index];
             // console.log(category)
-
+            const ring = this.scene.add.graphics()
+                .lineStyle(4, 0xE60000, index === this.state.currentCat ? 1 : 0)
+                .strokeCircle(x + this.config.MENU_WIDTH, y, 26)
+            this.menu.container.add(ring)
 
             this.menu.lines[index] = this.scene.add.container(x, y).setDepth()
             this.menu.container.add(this.menu.lines[index])
@@ -207,7 +217,7 @@ export default class EmoChat {
                     .image(x, y, 'smileys', iconNumber)
                     .setOrigin(0.5)
                     .setScale(0.9)
-                    .setAlpha(i ? 0.5 : 1)
+                    .setAlpha(1 - i * 0.15) // .setAlpha(i ? 0.5 : 1)
 
                 this.menu.lines[index].add(icon)
             }
@@ -269,9 +279,9 @@ export default class EmoChat {
         this.helper.container = this.scene.add.container(0, 0).setDepth(999)
 
         const x = 170
-        const y = 400
+        const y = 500
         const width = 300
-        const height = 360
+        const height = 260
 
         // рамка
         this.helper.frame = this.scene.add.graphics()
@@ -289,15 +299,23 @@ export default class EmoChat {
         // Swipe <- prev emoji\n
         // Swipe DOWN - change cat
 
-        this.helper.text = this.scene.add.text(x + width / 2, y + 10, `EMO_CHAT HELPER`, {
+        this.helper.top = this.scene.add.text(x + width / 2, y + 10, `EMO_CHAT HELPER`, {
             font: "20px Helvetica",
-            fill: '#f8e700ff',
+            fill: '#f8e700',
         })
             .setAlpha(1)
             .setOrigin(0.5, 0)
             .setAlign('center')
 
-        this.helper.container.add([this.helper.bg, this.helper.frame, this.helper.text])
+        this.helper.text = this.scene.add.text(x + 20, y + 20,
+            '', {
+            font: "20px Helvetica",
+            fill: '#05edff',
+        })
+            .setOrigin(0, 0)
+            .setAlign('left')
+
+        this.helper.container.add([this.helper.bg, this.helper.frame, this.helper.top, this.helper.text])
     }
     createMessage(reply, occasion, emos) {
         // контейнер
@@ -335,6 +353,21 @@ export default class EmoChat {
     }
     addEmoToLine(emoFrame) {
         // TODO: позже добавим проверки на длину/ширину и веса слов
+        if (this.message.line.length >= this.config.MESSAGE_LENGTH && emoFrame) {
+            // shake line
+            this.message.sprites.forEach(icon => {
+                this.scene.tweens.add({
+                    targets: icon,
+                    // x: targetX,
+                    y: icon.y - 20,
+                    yoyo: true,
+                    duration: 20,
+                    ease: 'Back.Out'
+                });
+            })
+            return
+        }
+
         if (emoFrame) this.message.line.push(emoFrame);
         else if (this.message.line.length > 0) this.message.line.pop()
 
@@ -342,16 +375,20 @@ export default class EmoChat {
 
         // если длина достигла лимита — потом сюда воткнём отправку в фид
         if (this.message.line.length >= this.config.MESSAGE_LENGTH) {
-            setTimeout(() => {
-                this.commitMessage();
-                this.clearMessageLine();
-                this.updateMessageLine();
-                // this.timer.stop()
-            }, 700);
+            // может другую строку набирать? или одной достаточно?
+            // this.sendMessage();
+            // this.clearMessageLine();
+            // setTimeout(() => {
+            //     this.commitMessage();
+            //     this.clearMessageLine();
+            //     this.updateMessageLine();
+            //     // this.timer.stop()
+            // }, 700);
         }
 
         this.updateMessageLine();
     }
+
     commitMessage() {
         // отправляем в чат
     }
@@ -436,14 +473,8 @@ export default class EmoChat {
 
         this.feed.container.add([this.feed.bg, this.feed.frame, this.feed.messageLineBG])
     }
-    createFeedInsert() {
-        // ИМЯ
-        // РЕЗУЛЬТАТ ИГРЫ (ЕСЛИ ЕСТЬ)
-        // ЭМОЦИЯ
-    }
-    _updateFeed(insert) {
-
-    }
+   
+    // ещё не задействовал
     updateFeed(line) {
         if (!this.feedRows) {
             this.feedRows = [];
@@ -533,8 +564,47 @@ export default class EmoChat {
             startTime = 0;
 
             // 👇 короткий тап = открыть/закрыть меню
+            // if (dist < cfg.TAP_MAX_DISTANCE && dur < cfg.TAP_MAX_DURATION) {
+            //     // this.toggleMenu();
+            //     this.performGesture("tap");
+            //     return;
+            // }
+
+            // 👇 короткий тап: одиночный или двойной
             if (dist < cfg.TAP_MAX_DISTANCE && dur < cfg.TAP_MAX_DURATION) {
-                this.toggleMenu();
+                const now = scene.time.now;
+
+                // если уже был тап недавно → считаем дабл-тап
+                if (now - this.lastTapTime <= cfg.DOUBLE_TAP_DELAY) {
+                    // сброс ожидания одиночного тапа
+                    if (this.tapTimeoutId) {
+                        clearTimeout(this.tapTimeoutId);
+                        this.tapTimeoutId = null;
+                    }
+                    this.lastTapTime = 0;
+
+                    // здесь обрабатываем DOUBLE TAP
+                    // либо прямым вызовом:
+                    // this.onDoubleTap();
+                    // либо через схемы:
+                    this.performGesture('double');
+
+                } else {
+                    // первый тап → ждём, не прилетит ли второй
+                    this.lastTapTime = now;
+
+                    this.tapTimeoutId = setTimeout(() => {
+                        // если второй тап не пришёл — считаем одиночным
+                        this.tapTimeoutId = null;
+                        this.lastTapTime = 0;
+
+                        // одиночный тап:
+                        // раньше тут было this.toggleMenu()
+                        // теперь лучше через схему:
+                        this.performGesture('tap');
+                    }, cfg.DOUBLE_TAP_DELAY);
+                }
+
                 return;
             }
 
@@ -542,14 +612,14 @@ export default class EmoChat {
             if (dist >= cfg.SWIPE_MIN_DISTANCE && dur < cfg.SWIPE_MAX_TIME) {
                 if (Math.abs(dx) > Math.abs(dy)) {
                     // горизонталь
-                    if (dx > 0) this.nextIcon();      // вправо
-                    else this.prevIcon();             // влево
+                    if (dx > 0) this.performGesture('right'); // this.nextIcon();      // вправо
+                    else this.performGesture('left'); // this.prevIcon();             // влево
 
                     this.buttonIconlineMove(this.button.icon, dx, 0)
                 } else {
                     // вертикаль
-                    if (dy < 0) this.sendEmoji();     // вверх — отправка эмоции
-                    else this.undoEmoji() // this.nextCategory();         // вниз — смена категории
+                    if (dy < 0) this.performGesture('up'); // this.sendEmoji();     // вверх — отправка эмоции
+                    else this.performGesture('down'); // this.undoEmoji() // this.nextCategory();         // вниз — смена категории
 
                     this.buttonIconlineMove(this.button.icon, 0, dy)
                 }
@@ -559,7 +629,7 @@ export default class EmoChat {
         // (опционально) — если хочешь long-hold для drag или таймеров:
         // scene.input.on('pointermove', ...)  → можно добавить потом.
     }
-
+    // методы для жестов
     nextIcon() { console.log('next icon'); }
     prevIcon() { console.log('prev icon'); }
     nextCategory() { console.log('next category'); }
@@ -575,7 +645,26 @@ export default class EmoChat {
         // this.addFeedRow(line);
         this.addEmoToLine(this.state.currentEmo)
     }
-
+    toggleMenu() {
+        console.log('toggle menu')
+        if (this.menu.container.visible) {
+            this.menu.container.visible = 0
+            this.helper.container.visible = 0
+        } else {
+            this.menu.container.visible = 1
+            if (this.helperCloser.state) this.helper.container.visible = 1
+        }
+    }
+    sendMessage() {
+        console.log('send message', this.message.line); 
+        this.commitMessage(this.message.line);
+         setTimeout(() => {
+            // this.commitMessage();
+            this.clearMessageLine();
+            this.updateMessageLine();
+            // this.timer.stop()
+        }, 100);
+    }
     // вспомогательные методы
     buttonIconlineMove(icon, dx, dy) {
         // console.log('buttonIconlineMove: ', icon, dx, dy);
@@ -596,19 +685,73 @@ export default class EmoChat {
             },
         });
     }
-    toggleMenu() {
-        console.log('toggle menu')
-        if (this.menu.container.visible) {
-            this.menu.container.visible = 0
-            this.helper.container.visible = 0
-        } else {
-            this.menu.container.visible = 1
-            if (this.helperCloser.state) this.helper.container.visible = 1
-        }
+
+
+
+    // схемы
+    createGestureSchemes() {
+        this.gestureSchemes = [
+            {
+                name: "1",
+                handlers: {
+                    tap: "toggleMenu",
+                    double: "sendMessage",
+                    up: "sendEmoji",
+                    down: "undoEmoji",
+                    right: "nextIcon",
+                    left: "prevIcon"
+                }
+            },
+            {
+                name: "2",
+                handlers: {
+                    tap: "sendEmoji", // toggleMenu
+                    double: "toggleMenu", // sendMessage
+                    up: "sendMessage", // sendEmoji
+                    down: "undoEmoji", // undoEmoji
+                    right: "nextIcon", // nextIcon
+                    left: "prevIcon" // prevIcon
+                }
+            },
+            {
+                name: "3",
+                handlers: {
+                    tap: "sendEmoji", // toggleMenu
+                    double: "sendMessage", // sendMessage
+                    up: "sendEmoji", // sendEmoji
+                    down: "undoEmoji", // undoEmoji
+                    right: "nextIcon", // nextIcon
+                    left: "toggleMenu" // prevIcon
+                }
+            }
+        ];
+
     }
+    switchGestureScheme() {
+        const i = this.gestureSchemes.indexOf(this.currentScheme);
+        this.currentScheme = this.gestureSchemes[(i + 1) % this.gestureSchemes.length];
+        console.log("Gesture scheme switch:", this.currentScheme);
+        this.updateHelper(this.currentScheme)
+    }
+    performGesture(gestureName) {
+        const action = this.currentScheme.handlers[gestureName];
+        if (!action) return;
+        this[action]();
+    }
+    updateHelper(scheme) {
+        // var 1
+        // const text = []
+        // for (const key in scheme.handlers) {
+        //     const line = `${key} : ${scheme.handlers[key]}\n`
+        //     text.push(line)
+        // }
+        // var 2
+        const text = Object.entries(scheme.handlers)
+            .map(([k, v]) => `${k} : ${v}`)
+            .join('\n');
 
-
-
+        this.helper.text.setText(`\n${text}\n \nname : ${scheme.name}`)
+    }
 
 }
 // таймер-часики
