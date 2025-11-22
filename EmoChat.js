@@ -24,6 +24,7 @@ export default class EmoChat {
             AREA_HEIGHT: 150,
             TAP_MAX_DISTANCE: 10,
             TAP_MAX_DURATION: 250,
+            TAP_LONG_DURATION: 300,
             SWIPE_MIN_DISTANCE: 50,
             SWIPE_MAX_TIME: 500,
             DRAG_HOLD_TIME: 400,
@@ -617,10 +618,17 @@ export default class EmoChat {
             const dur = scene.time.now - startTime;
             startTime = 0;
 
-            // 👇 короткий тап = открыть/закрыть меню
+            // 👇 короткий тап 
             if (dist < cfg.TAP_MAX_DISTANCE && dur < cfg.TAP_MAX_DURATION) {
                 // this.toggleMenu();
                 this.performGesture("tap");
+                return;
+            }
+
+            // 👇 длинный тап 
+            if (dist < cfg.TAP_MAX_DISTANCE && dur > cfg.TAP_LONG_DURATION) {
+                // this.toggleMenu();
+                this.performGesture("long");
                 return;
             }
 
@@ -704,13 +712,25 @@ export default class EmoChat {
     }
     toggleMenu() {
         console.log('toggle menu')
-        if (this.menu.container.visible) {
-            this.menu.container.visible = 0
-            this.helper.container.visible = 0
-        } else {
-            this.menu.container.visible = 1
-            if (this.helperCloser.state) this.helper.container.visible = 1
-        }
+        this.menu.container.visible = !this.menu.container.visible
+        // if (this.menu.container.visible) {
+        //     this.menu.container.visible = 0
+        //     // this.helper.container.visible = 0
+        // } else {
+        //     this.menu.container.visible = 1
+        //     // if (this.helperCloser.state) this.helper.container.visible = 1
+        // }
+    }
+    toggleHelp() {
+        console.log('toggle help')
+        this.help.container.visible = !this.help.container.visible
+        // if (this.help.container.visible) {
+        //     this.help.container.visible = 0
+        //     // this.helper.container.visible = 0
+        // } else {
+        //     this.menu.container.visible = 1
+        //     // if (this.helperCloser.state) this.helper.container.visible = 1
+        // }
     }
     sendMessage() {
         console.log('send message', this.message.line); 
@@ -799,7 +819,18 @@ export default class EmoChat {
                 name: "5",
                 handlers: {
                     tap: "toggleMenu", // toggleMenu
-                    // double: "sendMessage", // sendMessage
+                    long: "sendMessage", // sendMessage
+                    up: "sendEmoji", // sendEmoji
+                    down: "undoEmoji", // undoEmoji
+                    right: "nextIcon", // nextIcon
+                    left: "toggleMenu" // prevIcon
+                }
+            },
+            {
+                name: "6",
+                handlers: {
+                    tap: "sendMessage", // toggleMenu
+                    long: "toggleMenu", // sendMessage
                     up: "sendEmoji", // sendEmoji
                     down: "undoEmoji", // undoEmoji
                     right: "nextIcon", // nextIcon
@@ -808,6 +839,10 @@ export default class EmoChat {
             }
         ];
 
+    }
+    tapContext() {
+        if (this.message.line.length > 0) this.sendMessage()
+        else this.toggleMenu()
     }
     switchGestureScheme() {
         const i = this.gestureSchemes.indexOf(this.currentScheme);
