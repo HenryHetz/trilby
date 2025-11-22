@@ -96,7 +96,7 @@ export default class EmoChat {
     }
     initCategories() {
         const categoryNames = ['POSITIVE', 'NEGATIVE', 'FUN', 'REACTION', 'WORDS'];
-        const iconsPerCategory = 6; // сколько кадров у каждой категории
+        const iconsPerCategory = 5; // сколько кадров у каждой категории
         this.categories = categoryNames.map(name => ({
             name,
             icons: Array.from({ length: iconsPerCategory }, (_, i) => `${name}_${i}`)
@@ -161,7 +161,7 @@ export default class EmoChat {
     createMenu() {
         // контейнер
         this.menu = {}
-        this.menu.container = this.scene.add.container(0, 0).setDepth(999)
+        this.menu.container = this.scene.add.container(0, 0).setDepth(999).setVisible(0)
 
         // рамка
         this.menu.frame = this.scene.add.graphics()
@@ -261,13 +261,13 @@ export default class EmoChat {
             .on('pointerdown', () => {
                 if (this.menu.container.visible) {
                     this.menu.container.visible = 0
-                    this.menuCloser.text.setText('OPEN\nMENU')
-                    this.menuCloser.state = false
+                    // this.menuCloser.text.setText('OPEN\nMENU')
+                    // this.menuCloser.state = false
                 }
                 else {
                     this.menu.container.visible = 1
-                    this.menuCloser.text.setText('CLOSE\nMENU')
-                    this.menuCloser.state = true
+                    // this.menuCloser.text.setText('CLOSE\nMENU')
+                    // this.menuCloser.state = true
                 }
             })
 
@@ -277,7 +277,7 @@ export default class EmoChat {
     createHelper() {
         // контейнер
         this.helper = {}
-        this.helper.container = this.scene.add.container(0, 0).setDepth(999)
+        this.helper.container = this.scene.add.container(0, 0).setDepth(999).setVisible(0)
 
         const x = 170
         const y = 500
@@ -345,7 +345,7 @@ export default class EmoChat {
         //     }
         // })
 
-        this.helperCloser.text = this.scene.add.text(closerX, closerY, 'CLOSE\nHELP', {
+        this.helperCloser.text = this.scene.add.text(closerX, closerY, 'OPEN\nHELP', {
             font: '12px Helvetica',
             fill: '#ffee00ff',
         })
@@ -429,9 +429,15 @@ export default class EmoChat {
 
         // if (this.message.line.length === 1) this.timer.start(5000, )
 
-        // если длина достигла лимита — потом сюда воткнём отправку в фид
+        // меняем иконки на кнопке
         if (this.message.line.length === this.config.MESSAGE_LENGTH) {
             this.button.icon.setFrame(117)
+        } else {
+            // пока рандом
+            const iconNumber = Math.round((Math.random() * 100))
+            this.state.currentEmo = iconNumber
+            this.button.icon.setFrame(this.state.currentEmo)
+            
         }
 
         this.updateMessageLine();
@@ -715,7 +721,9 @@ export default class EmoChat {
             this.updateMessageLine();
             // this.timer.stop()
         }, 100);
-        this.button.icon.setFrame(1) // нужно ставить последнюю иконку, или предикцию...
+
+        this.button.icon.setFrame(this.state.currentEmo)
+        // this.button.icon.setFrame(1) // нужно ставить последнюю иконку, или предикцию...
     }
     // вспомогательные методы
     buttonIconlineMove(icon, dx, dy) {
@@ -782,6 +790,17 @@ export default class EmoChat {
                     tap: "sendEmoji", // toggleMenu
                     // double: "sendMessage", // sendMessage
                     up: "sendMessage", // sendEmoji
+                    down: "undoEmoji", // undoEmoji
+                    right: "nextIcon", // nextIcon
+                    left: "toggleMenu" // prevIcon
+                }
+            },
+            {
+                name: "5",
+                handlers: {
+                    tap: "toggleMenu", // toggleMenu
+                    // double: "sendMessage", // sendMessage
+                    up: "sendEmoji", // sendEmoji
                     down: "undoEmoji", // undoEmoji
                     right: "nextIcon", // nextIcon
                     left: "toggleMenu" // prevIcon
