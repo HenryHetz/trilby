@@ -116,7 +116,7 @@ export default class EmoChat {
         this.createFeed()
         this.createMessage()
         this.createGestureSchemes()
-        this.currentScheme = this.gestureSchemes[0];
+        this.currentScheme = this.gestureSchemes[3];
         this.updateHelper(this.currentScheme)
 
         // this.timer = new EmoChat.Timer(
@@ -225,6 +225,7 @@ export default class EmoChat {
 
         // закрывашка-открывашка хелпера
         this.helperCloser = {}
+        this.helperCloser.container = this.scene.add.container(0, 0).setDepth(999)
         this.helperCloser.state = true
 
         const x = this.config.BUTTON_X + 40
@@ -270,7 +271,7 @@ export default class EmoChat {
                 }
             })
 
-        this.menu.container.add([this.helperCloser.button, this.helperCloser.text])
+        this.helperCloser.container.add([this.helperCloser.button, this.helperCloser.text])
 
     }
     createHelper() {
@@ -316,6 +317,8 @@ export default class EmoChat {
             .setAlign('left')
 
         this.helper.container.add([this.helper.bg, this.helper.frame, this.helper.top, this.helper.text])
+        
+        
     }
     createMessage(reply, occasion, emos) {
         // контейнер
@@ -355,16 +358,20 @@ export default class EmoChat {
         // TODO: позже добавим проверки на длину/ширину и веса слов
         if (this.message.line.length >= this.config.MESSAGE_LENGTH && emoFrame) {
             // shake line
-            this.message.sprites.forEach(icon => {
-                this.scene.tweens.add({
-                    targets: icon,
-                    // x: targetX,
-                    y: icon.y - 20,
-                    yoyo: true,
-                    duration: 20,
-                    ease: 'Back.Out'
-                });
-            })
+            // this.message.sprites.forEach(icon => {
+            //     this.scene.tweens.add({
+            //         targets: icon,
+            //         // x: targetX,
+            //         y: icon.y - 20,
+            //         yoyo: true,
+            //         duration: 20,
+            //         ease: 'Back.Out'
+            //     });
+            // })
+            // return
+
+            // send
+            this.sendMessage();
             return
         }
 
@@ -564,49 +571,49 @@ export default class EmoChat {
             startTime = 0;
 
             // 👇 короткий тап = открыть/закрыть меню
-            // if (dist < cfg.TAP_MAX_DISTANCE && dur < cfg.TAP_MAX_DURATION) {
-            //     // this.toggleMenu();
-            //     this.performGesture("tap");
-            //     return;
-            // }
-
-            // 👇 короткий тап: одиночный или двойной
             if (dist < cfg.TAP_MAX_DISTANCE && dur < cfg.TAP_MAX_DURATION) {
-                const now = scene.time.now;
-
-                // если уже был тап недавно → считаем дабл-тап
-                if (now - this.lastTapTime <= cfg.DOUBLE_TAP_DELAY) {
-                    // сброс ожидания одиночного тапа
-                    if (this.tapTimeoutId) {
-                        clearTimeout(this.tapTimeoutId);
-                        this.tapTimeoutId = null;
-                    }
-                    this.lastTapTime = 0;
-
-                    // здесь обрабатываем DOUBLE TAP
-                    // либо прямым вызовом:
-                    // this.onDoubleTap();
-                    // либо через схемы:
-                    this.performGesture('double');
-
-                } else {
-                    // первый тап → ждём, не прилетит ли второй
-                    this.lastTapTime = now;
-
-                    this.tapTimeoutId = setTimeout(() => {
-                        // если второй тап не пришёл — считаем одиночным
-                        this.tapTimeoutId = null;
-                        this.lastTapTime = 0;
-
-                        // одиночный тап:
-                        // раньше тут было this.toggleMenu()
-                        // теперь лучше через схему:
-                        this.performGesture('tap');
-                    }, cfg.DOUBLE_TAP_DELAY);
-                }
-
+                // this.toggleMenu();
+                this.performGesture("tap");
                 return;
             }
+
+            // 👇 короткий тап: одиночный или двойной
+            // if (dist < cfg.TAP_MAX_DISTANCE && dur < cfg.TAP_MAX_DURATION) {
+            //     const now = scene.time.now;
+
+            //     // если уже был тап недавно → считаем дабл-тап
+            //     if (now - this.lastTapTime <= cfg.DOUBLE_TAP_DELAY) {
+            //         // сброс ожидания одиночного тапа
+            //         if (this.tapTimeoutId) {
+            //             clearTimeout(this.tapTimeoutId);
+            //             this.tapTimeoutId = null;
+            //         }
+            //         this.lastTapTime = 0;
+
+            //         // здесь обрабатываем DOUBLE TAP
+            //         // либо прямым вызовом:
+            //         // this.onDoubleTap();
+            //         // либо через схемы:
+            //         this.performGesture('double');
+
+            //     } else {
+            //         // первый тап → ждём, не прилетит ли второй
+            //         this.lastTapTime = now;
+
+            //         this.tapTimeoutId = setTimeout(() => {
+            //             // если второй тап не пришёл — считаем одиночным
+            //             this.tapTimeoutId = null;
+            //             this.lastTapTime = 0;
+
+            //             // одиночный тап:
+            //             // раньше тут было this.toggleMenu()
+            //             // теперь лучше через схему:
+            //             this.performGesture('tap');
+            //         }, cfg.DOUBLE_TAP_DELAY);
+            //     }
+
+            //     return;
+            // }
 
             // 👇 быстрый свайп
             if (dist >= cfg.SWIPE_MIN_DISTANCE && dur < cfg.SWIPE_MAX_TIME) {
@@ -719,6 +726,17 @@ export default class EmoChat {
                     tap: "sendEmoji", // toggleMenu
                     double: "sendMessage", // sendMessage
                     up: "sendEmoji", // sendEmoji
+                    down: "undoEmoji", // undoEmoji
+                    right: "nextIcon", // nextIcon
+                    left: "toggleMenu" // prevIcon
+                }
+            },
+            {
+                name: "4",
+                handlers: {
+                    tap: "sendEmoji", // toggleMenu
+                    // double: "sendMessage", // sendMessage
+                    up: "sendMessage", // sendEmoji
                     down: "undoEmoji", // undoEmoji
                     right: "nextIcon", // nextIcon
                     left: "toggleMenu" // prevIcon
