@@ -771,50 +771,50 @@ export default class EmoChat {
     // схемы
     createGestureSchemes() {
         this.gestureSchemes = [
-            {
-                name: "1",
-                handlers: {
-                    tap: "toggleMenu",
-                    double: "sendMessage",
-                    up: "sendEmoji",
-                    down: "undoEmoji",
-                    right: "nextIcon",
-                    left: "prevIcon"
-                }
-            },
-            {
-                name: "2",
-                handlers: {
-                    tap: "sendEmoji", // toggleMenu
-                    double: "toggleMenu", // sendMessage
-                    up: "sendMessage", // sendEmoji
-                    down: "undoEmoji", // undoEmoji
-                    right: "nextIcon", // nextIcon
-                    left: "prevIcon" // prevIcon
-                }
-            },
-            {
-                name: "3",
-                handlers: {
-                    tap: "sendEmoji", // toggleMenu
-                    double: "sendMessage", // sendMessage
-                    up: "sendEmoji", // sendEmoji
-                    down: "undoEmoji", // undoEmoji
-                    right: "nextIcon", // nextIcon
-                    left: "toggleMenu" // prevIcon
-                }
-            },
-            {
-                name: "4",
-                handlers: {
-                    tap: "sendEmoji", // toggleMenu
-                    // double: "sendMessage", // sendMessage
-                    up: "sendMessage", // sendEmoji
-                    down: "undoEmoji", // undoEmoji
-                    right: "nextIcon", // nextIcon
-                    left: "toggleMenu" // prevIcon
-                }
-            },
+            // {
+            //     name: "1",
+            //     handlers: {
+            //         tap: "toggleMenu",
+            //         double: "sendMessage",
+            //         up: "sendEmoji",
+            //         down: "undoEmoji",
+            //         right: "nextIcon",
+            //         left: "prevIcon"
+            //     }
+            // },
+            // {
+            //     name: "2",
+            //     handlers: {
+            //         tap: "sendEmoji", // toggleMenu
+            //         double: "toggleMenu", // sendMessage
+            //         up: "sendMessage", // sendEmoji
+            //         down: "undoEmoji", // undoEmoji
+            //         right: "nextIcon", // nextIcon
+            //         left: "prevIcon" // prevIcon
+            //     }
+            // },
+            // {
+            //     name: "3",
+            //     handlers: {
+            //         tap: "sendEmoji", // toggleMenu
+            //         double: "sendMessage", // sendMessage
+            //         up: "sendEmoji", // sendEmoji
+            //         down: "undoEmoji", // undoEmoji
+            //         right: "nextIcon", // nextIcon
+            //         left: "toggleMenu" // prevIcon
+            //     }
+            // },
+            // {
+            //     name: "4",
+            //     handlers: {
+            //         tap: "sendEmoji", // toggleMenu
+            //         // double: "sendMessage", // sendMessage
+            //         up: "sendMessage", // sendEmoji
+            //         down: "undoEmoji", // undoEmoji
+            //         right: "nextIcon", // nextIcon
+            //         left: "toggleMenu" // prevIcon
+            //     }
+            // },
             {
                 name: "5",
                 handlers: {
