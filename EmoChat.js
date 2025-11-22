@@ -847,7 +847,7 @@ export default class EmoChat {
     switchGestureScheme() {
         const i = this.gestureSchemes.indexOf(this.currentScheme);
         this.currentScheme = this.gestureSchemes[(i + 1) % this.gestureSchemes.length];
-        console.log("Gesture scheme switch:", this.currentScheme);
+        // console.log("Gesture scheme switch:", this.currentScheme);
         this.updateHelper(this.currentScheme)
     }
     performGesture(gestureName) {
@@ -863,6 +863,7 @@ export default class EmoChat {
         //     text.push(line)
         // }
         // var 2
+        if (!scheme || !scheme.handlers) return
         const text = Object.entries(scheme.handlers)
             .map(([k, v]) => `${k} : ${v}`)
             .join('\n');
