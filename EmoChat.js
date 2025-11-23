@@ -140,9 +140,9 @@ export default class EmoChat {
 
         // иконка в центре области 
         this.button.icon = this.scene.add
-            .image(this.config.BUTTON_X, this.config.BUTTON_Y, 'smileys', 1)
+            .image(this.config.BUTTON_X, this.config.BUTTON_Y, 'emo', 1)
             .setOrigin(0.5)
-            .setScale(1.3)
+            .setScale(1.1)
             // .setDepth(100)
             .setInteractive();
         this.button.icon.defaults = {
@@ -157,7 +157,7 @@ export default class EmoChat {
             .text(this.config.BUTTON_X, this.config.BUTTON_Y - 50, `EMO_CHAT`, {
                 font: '16px Helvetica',
                 fill: '#dbdbdbff',
-            }).setAlpha(1)
+            }).setAlpha(0)
             .setOrigin(0.5)
 
         this.button.container.add([this.button.frame, this.button.icon, this.button.label])
@@ -165,7 +165,7 @@ export default class EmoChat {
     createMenu() {
         // контейнер
         this.menu = {}
-        this.menu.container = this.scene.add.container(0, 0).setDepth(999).setVisible(this.devVisible)
+        this.menu.container = this.scene.add.container(0, 0).setDepth(999).setVisible(1)
 
         // рамка
         this.menu.frame = this.scene.add.graphics()
@@ -223,10 +223,10 @@ export default class EmoChat {
                 // console.log(iconName, iconNumber)
 
                 const icon = this.scene.add
-                    .image(x, y, 'smileys', iconNumber)
+                    .image(x, y, 'emo', iconNumber)
                     .setOrigin(0.5)
-                    .setScale(0.9)
-                    .setAlpha(1 - i * 0.15) // .setAlpha(i ? 0.5 : 1)
+                    .setScale(0.7) // 0.9
+                    .setAlpha(1) // .setAlpha(1 - i * 0.15)
                 icon.defaults = {
                     alpha: icon.alpha,
                     scale: icon.scale,
@@ -447,7 +447,7 @@ export default class EmoChat {
 
         // // меняем иконки на кнопке
         if (this.message.line.length === this.config.MESSAGE_LENGTH) {
-            this.button.icon.setFrame(117) // самолётик
+            this.button.icon.setFrame(119) // самолётик
         } else {
             // пока рандом
             const iconNumber = Math.round((Math.random() * 100))
@@ -490,9 +490,9 @@ export default class EmoChat {
             if (!icon) {
                 // это НОВАЯ иконка → создаём у кнопки и анимируем "прилёт"
                 icon = this.scene.add
-                    .image(targetX, targetY + 50, 'smileys', frame)
+                    .image(targetX, targetY + 50, 'emo', frame)
                     .setOrigin(0.5)
-                    .setScale(0.7);
+                    .setScale(0.5);
 
                 sprites[index] = icon;
                 this.message.lineContainer.add(icon)
@@ -747,7 +747,7 @@ export default class EmoChat {
 
              // меняем иконки на кнопке
         // if (this.message.line.length === this.config.MESSAGE_LENGTH) {
-        //     this.button.icon.setFrame(117) // самолётик
+        //     this.button.icon.setFrame(119) // самолётик
         // } else {
         //     // пока рандом
         //     const iconNumber = Math.round((Math.random() * 100))

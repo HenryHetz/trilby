@@ -40,9 +40,9 @@ class ArenaScene extends Phaser.Scene {
         // sprites
         this.load.image("bg", "assets/sprites/bg_59.png");
         this.load.image("button", "assets/sprites/button_red.png");
-        this.load.image("emoji_0", "assets/sprites/emoji_0.png");
-        this.load.image("emoji_1", "assets/sprites/emoji_1.png");
-        this.load.image("emoji_2", "assets/sprites/emoji_2.png");
+        // this.load.image("emoji_0", "assets/sprites/emoji_0.png");
+        // this.load.image("emoji_1", "assets/sprites/emoji_1.png");
+        // this.load.image("emoji_2", "assets/sprites/emoji_2.png");
         this.load.image("icon_settings", "assets/sprites/icon_settings.png");
 
         // атласы
@@ -52,7 +52,7 @@ class ArenaScene extends Phaser.Scene {
         //     'assets/sprites/sheets/smileys.json'
         // )
 
-        this.load.spritesheet('smileys', 'assets/sprites/sheets/smileys.png', {
+        this.load.spritesheet('emo', 'assets/sprites/sheets/emo.png', {
             frameWidth: 72,     // ширина одной иконки
             frameHeight: 72,    // высота одной иконки
             margin: 0,          // отступ от краёв спрайта (если есть)
