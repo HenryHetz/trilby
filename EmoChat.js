@@ -118,7 +118,7 @@ export default class EmoChat {
         this.createFeed()
         this.createMessage()
         this.createGestureSchemes()
-        this.currentScheme = this.gestureSchemes[0];
+        this.currentScheme = this.gestureSchemes[1];
         this.updateHelper(this.currentScheme)
 
         // this.timer = new EmoChat.Timer(
@@ -142,11 +142,11 @@ export default class EmoChat {
         this.button.icon = this.scene.add
             .image(this.config.BUTTON_X, this.config.BUTTON_Y, 'smileys', 1)
             .setOrigin(0.5)
-            .setScale(1.2)
+            .setScale(1.3)
             // .setDepth(100)
             .setInteractive();
         this.button.icon.defaults = {
-            scale: 1.2,
+            scale: this.button.icon.scale,
             x: this.config.BUTTON_X,
             y: this.config.BUTTON_Y
         }
@@ -421,39 +421,38 @@ export default class EmoChat {
     }
     addEmoToLine(emoFrame) {
         // TODO: позже добавим проверки на длину/ширину и веса слов
-        if (this.message.line.length >= this.config.MESSAGE_LENGTH && emoFrame) {
-            // shake line
-            // this.message.sprites.forEach(icon => {
-            //     this.scene.tweens.add({
-            //         targets: icon,
-            //         // x: targetX,
-            //         y: icon.y - 20,
-            //         yoyo: true,
-            //         duration: 20,
-            //         ease: 'Back.Out'
-            //     });
-            // })
-            // return
+        // if (this.message.line.length >= this.config.MESSAGE_LENGTH && emoFrame) {
+        //     // shake line
+        //     // this.message.sprites.forEach(icon => {
+        //     //     this.scene.tweens.add({
+        //     //         targets: icon,
+        //     //         // x: targetX,
+        //     //         y: icon.y - 20,
+        //     //         yoyo: true,
+        //     //         duration: 20,
+        //     //         ease: 'Back.Out'
+        //     //     });
+        //     // })
+        //     // return
 
-            // send
-            this.sendMessage();
-            return
-        }
+        //     // send
+        //     this.sendMessage();
+        //     return
+        // }
 
         if (emoFrame) this.message.line.push(emoFrame);
         else if (this.message.line.length > 0) this.message.line.pop()
 
         // if (this.message.line.length === 1) this.timer.start(5000, )
 
-        // меняем иконки на кнопке
+        // // меняем иконки на кнопке
         if (this.message.line.length === this.config.MESSAGE_LENGTH) {
-            this.button.icon.setFrame(117)
+            this.button.icon.setFrame(117) // самолётик
         } else {
             // пока рандом
             const iconNumber = Math.round((Math.random() * 100))
             this.state.currentEmo = iconNumber
             this.button.icon.setFrame(this.state.currentEmo)
-
         }
 
         this.updateMessageLine();
@@ -739,6 +738,30 @@ export default class EmoChat {
         this.setButtonIcon()
 
     }
+    upSelector() {
+        if (this.message.line.length === this.config.MESSAGE_LENGTH) {
+            this.sendMessage();
+        } else {
+            this.sendEmoji()
+        }
+
+             // меняем иконки на кнопке
+        // if (this.message.line.length === this.config.MESSAGE_LENGTH) {
+        //     this.button.icon.setFrame(117) // самолётик
+        // } else {
+        //     // пока рандом
+        //     const iconNumber = Math.round((Math.random() * 100))
+        //     this.state.currentEmo = iconNumber
+        //     this.button.icon.setFrame(this.state.currentEmo)
+        // }
+    }
+    downSelector() {
+         if (this.message.line.length === 0) {
+            this.nextCategory();
+        } else {
+            this.undoEmoji()
+        }
+    }
     undoEmoji() {
         console.log('undoEmoji')
         this.addEmoToLine(false)
@@ -759,7 +782,6 @@ export default class EmoChat {
 
         this.openVeer(this.menu.container.visible)
     }
-
     toggleHelp() {
         console.log('toggle help')
         // this.help.container.visible = !this.help.container.visible
@@ -880,11 +902,6 @@ export default class EmoChat {
 
         })
     }
-    changeCategory() {
-        console.log('changeCategory number: ', this.state.currentCat);
-
-    }
-
 
     // схемы
     createGestureSchemes() {
@@ -947,12 +964,12 @@ export default class EmoChat {
             {
                 name: "6",
                 handlers: {
-                    tap: "sendMessage", // toggleMenu
-                    long: "toggleMenu", // sendMessage
-                    up: "sendEmoji", // sendEmoji
-                    down: "undoEmoji", // undoEmoji
+                    tap: "toggleMenu", // toggleMenu
+                    long: "sendMessage", // sendMessage
+                    up: "upSelector", // sendEmoji
+                    down: "downSelector", // undoEmoji
                     right: "nextIcon", // nextIcon
-                    left: "toggleMenu" // prevIcon
+                    left: "prevIcon" // prevIcon
                 }
             }
         ];
