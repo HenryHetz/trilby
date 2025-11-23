@@ -120,9 +120,11 @@ class ArenaScene extends Phaser.Scene {
             { exitX: +11.02, crashX: +11.04, mode: 'red' },
             // { exitX: +3.42, crashX: +12.34, mode: 'blue' },
             { crashX: +23.76, mode: 'red' },
+            { crashX: +12.34, mode: 'red' },
             { exitX: +1.02, crashX: +2.34, mode: 'yellow' },
             // { crashX: +12.34, mode: 'red' },
-            // { exitX: +2.11, crashX: +2.34, mode: 'red' }
+            { exitX: +2.11, crashX: +2.34, mode: 'red' },
+            { exitX: +2.11, crashX: +2.34, mode: 'red' }
         ]; // [{exitX:number|null, crashX:number, mode:string}]
         this.lastLogGroup = this.add.container(10, 130).setDepth(50);
         this.roundsLog = [];
@@ -152,13 +154,14 @@ class ArenaScene extends Phaser.Scene {
             yellow: 0xfcd912, // orange: 0xFF9B0F yellow: 0xfcd912
             black: 0x000000,
             gray: 0xD9D9D9,
+            wrapper: 0x212838,
         };
 
         // text
         this.textColors = {
             white: '#FBFAF8',
-            red: '#c60000ff', // '#E60000'
-            gray: '#ccccccff',
+            red: '#c60000', // '#E60000'
+            gray: '#bcbcbcff', // '#cccccc'
             yellow: '#fcd912',
             blue: '#05edff',
             black: '#000000'
@@ -2099,9 +2102,9 @@ class ArenaScene extends Phaser.Scene {
 
     }
 
-    // ===== добавление записи СНИЗУ =====
+    // ===== добавление записи =====
     addLastRow(exitX, crashX, mode) {
-        const maxRow = 8
+        const maxRow = 7
         const rec = { exitX: exitX == null ? null : +exitX, crashX: +crashX, mode };
         this.lastLog.push(rec);
         if (this.lastLog.length > maxRow) this.lastLog.shift();
@@ -2127,8 +2130,11 @@ class ArenaScene extends Phaser.Scene {
             // зазор между текущей и следующей: зависит от того, была ли % у текущей
             let prevExitX = null
             if (i > 0) prevExitX = this.lastLog[i - 1].exitX
-            const gap = (prevExitX != null && r.exitX != null) ? 16 : 8;
-            y += 30 + gap;
+            // const gap = (prevExitX != null && r.exitX != null) ? 16 : 8;
+            // y += 30 + gap; // 30 + gap
+            // const gap = (prevExitX != null) ? 50 : 10;
+            const gap = (r.exitX != null) ? 18 : 0;
+            y += 36 + gap; // 30 + gap
         }
 
         // снизу вверх
@@ -2173,16 +2179,17 @@ function makeRow(scene, rec) {
 
     const ROW_H = 30;       // высота плашки
     const PAD_X = 10;       // внутренние отступы плашки
+    const PAD_Y = 4; 
     const RADIUS = 8;
 
     const FONT_MAIN = {
         fontFamily: 'CyberFont',
-        fontSize: '14px',
+        fontSize: '14px', // 14
         fill: rec.exitX != null ? scene.textColors.gray : scene.textColors.red
     };
     const FONT_PCT = {
         fontFamily: 'CyberFont',
-        fontSize: '12px',
+        fontSize: '20px',
         // color: scene.textColors.white,
         fill: scene.textColors.gray,
         stroke: scene.textColors.black,
@@ -2195,19 +2202,19 @@ function makeRow(scene, rec) {
         red: scene.standartColors.red     // красный
     };
     // текст внутри плашки
-    const label = rec.exitX != null ? `${f2(rec.exitX)} / ${f2(rec.crashX)}` : `${f2(rec.crashX)}`;
+    const label = rec.exitX != null ? `${f2(rec.exitX)}\n${f2(rec.crashX)}` : `${f2(rec.crashX)}`;
 
     // const txt = scene.add.text(0, 0, label, { ...FONT_MAIN, color: scene.textColors.black }).setOrigin(0, 0.5);
     const txt = scene.add.text(0, 0, label, { ...FONT_MAIN }).setOrigin(0, 0.5);
 
     const badgeW = Math.ceil(txt.width + PAD_X * 2);
-    const badgeH = ROW_H;
+    const badgeH = Math.ceil(txt.height + PAD_Y * 2); //  ROW_H
 
     const g = scene.add.graphics();
     // const color = rec.exitX != null ? (MODE_COLORS[rec.mode] ?? MODE_COLORS.red) : MODE_COLORS.red;
     // const color = MODE_COLORS[rec.mode]? MODE_COLORS[rec.mode] : MODE_COLORS.red
-    const color = scene.standartColors.gray
-    g.fillStyle(color, 0.1);
+    const color = scene.standartColors.wrapper
+    g.fillStyle(color, 1);
     g.fillRoundedRect(0, 0, badgeW, badgeH, RADIUS);
 
     const badge = scene.add.container(0, 0, [g, txt]);
@@ -2227,7 +2234,8 @@ function makeRow(scene, rec) {
                 FONT_PCT.strokeThickness = 8
             FONT_PCT.stroke = scene.textColors.red
         }
-        pct = scene.add.text(badgeW - 40, badgeH - 24, p, FONT_PCT).setOrigin(0, 1);
+        // pct = scene.add.text(badgeW - 40, badgeH - 24, p, FONT_PCT).setOrigin(0, 1);
+        pct = scene.add.text(badgeW - 6, badgeH - 20, p, FONT_PCT).setOrigin(0, 1);
 
         if (percent > 90) {
             scene.tweens.add({

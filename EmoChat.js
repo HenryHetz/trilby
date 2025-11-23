@@ -5,6 +5,7 @@ export default class EmoChat {
         this.config = this.initConstants({ x: 560, y: 930 }, { x: 480, y: 130 });
         // dev
         this.frameAlpha = 0
+        this.devVisible = 0
 
 
         this.init()
@@ -35,7 +36,7 @@ export default class EmoChat {
             FEED_HEIGHT: 360,
             MENU_WIDTH: 540,
             MENU_HEIGHT: 300,
-            MESSAGE_LENGTH: 4,
+            MESSAGE_LENGTH: 3,
             DOUBLE_TAP_DELAY: 250
         };
     }
@@ -82,7 +83,7 @@ export default class EmoChat {
     }
     initState() {
         this.state = {
-            currentCat: 0, // 'POSITIVE'?
+            currentCat: 0, // брать из записи или последнее или по умолчанию?
             currentEmo: undefined,
 
         }
@@ -145,7 +146,9 @@ export default class EmoChat {
             // .setDepth(100)
             .setInteractive();
         this.button.icon.defaults = {
-            scale: 1.2
+            scale: 1.2,
+            x: this.config.BUTTON_X,
+            y: this.config.BUTTON_Y
         }
         this.state.currentEmo = 1
         this.state.update({ currentEmo: 1 })
@@ -162,7 +165,7 @@ export default class EmoChat {
     createMenu() {
         // контейнер
         this.menu = {}
-        this.menu.container = this.scene.add.container(0, 0).setDepth(999).setVisible(0)
+        this.menu.container = this.scene.add.container(0, 0).setDepth(999).setVisible(this.devVisible)
 
         // рамка
         this.menu.frame = this.scene.add.graphics()
@@ -172,7 +175,7 @@ export default class EmoChat {
         // подложка
         this.menu.bg = this.scene.add.graphics();
         this.menu.bg.fillStyle(0x000000, 0.5);
-        this.menu.bg.fillRoundedRect(this.config.BUTTON_X - this.config.MENU_WIDTH+100, this.config.BUTTON_Y - this.config.MENU_HEIGHT / 2, this.config.MENU_WIDTH, this.config.MENU_HEIGHT, 30);
+        this.menu.bg.fillRoundedRect(this.config.BUTTON_X - this.config.MENU_WIDTH + 100, this.config.BUTTON_Y - this.config.MENU_HEIGHT / 2, this.config.MENU_WIDTH, this.config.MENU_HEIGHT, 30);
         this.menu.bg.defaults = {
             alpha: 0.8
         }
@@ -181,6 +184,7 @@ export default class EmoChat {
 
         // веер / линии / категории
         this.menu.lines = []
+        this.menu.rings = []
         this.menu.container.add(this.menu.lines)
 
         for (let index = 0; index < this.categories.length; index++) {
@@ -192,17 +196,21 @@ export default class EmoChat {
 
             const wrapper = this.scene.add.graphics()
                 .fillStyle(0x212838, 1)
-                .fillRoundedRect(x + 210, y - 25, 300, 50, 25) // .fillRoundedRect(x + 95, y - 25, 410, 50, 25)
+                .fillRoundedRect(x + 275, y - 25, 290, 50, 25) // .fillRoundedRect(x + 95, y - 25, 410, 50, 25)
             this.menu.container.add(wrapper)
 
             const category = this.categories[index];
             // console.log(category)
-            const ring = this.scene.add.graphics()
-                .lineStyle(4, 0xE60000, index === this.state.currentCat ? 1 : 0)
+            this.menu.rings[index] = this.scene.add.graphics()
+                .lineStyle(4, 0xE60000, 1)
                 .strokeCircle(x + this.config.MENU_WIDTH, y, 26)
-            this.menu.container.add(ring)
+                .setVisible(index === this.state.currentCat ? 1 : 0)
+            this.menu.container.add(this.menu.rings[index])
 
-            this.menu.lines[index] = this.scene.add.container(x, y).setDepth()
+
+            this.menu.lines[index] = this.scene.add.container(x, y)
+                .setDepth()
+                .setAlpha(index === this.state.currentCat ? 1 : 0.5)
             this.menu.container.add(this.menu.lines[index])
 
 
@@ -219,7 +227,13 @@ export default class EmoChat {
                     .setOrigin(0.5)
                     .setScale(0.9)
                     .setAlpha(1 - i * 0.15) // .setAlpha(i ? 0.5 : 1)
-
+                icon.defaults = {
+                    alpha: icon.alpha,
+                    scale: icon.scale,
+                    startX: x + 30,
+                    startY: y - (index - 2) * 30
+                }
+                // if (i === 0)console.log('icon.defaults', icon.defaults)
                 this.menu.lines[index].add(icon)
             }
         }
@@ -262,13 +276,13 @@ export default class EmoChat {
             .on('pointerdown', () => {
                 if (this.menu.container.visible) {
                     this.menu.container.visible = 0
-                    // this.menuCloser.text.setText('OPEN\nMENU')
-                    // this.menuCloser.state = false
+                    this.menuCloser.text.setText('OPEN\nMENU')
+                    this.menuCloser.state = false
                 }
                 else {
                     this.menu.container.visible = 1
-                    // this.menuCloser.text.setText('CLOSE\nMENU')
-                    // this.menuCloser.state = true
+                    this.menuCloser.text.setText('CLOSE\nMENU')
+                    this.menuCloser.state = true
                 }
             })
 
@@ -278,10 +292,10 @@ export default class EmoChat {
     createHelper() {
         // контейнер
         this.helper = {}
-        this.helper.container = this.scene.add.container(0, 0).setDepth(999).setVisible(0)
+        this.helper.container = this.scene.add.container(0, 0).setDepth(999).setVisible(this.devVisible)
 
-        const x = 170
-        const y = 500
+        const x = 170 // 170
+        const y = 510 // 500
         const width = 300
         const height = 260
 
@@ -318,7 +332,7 @@ export default class EmoChat {
             .setAlign('left')
 
         this.helper.container.add([this.helper.bg, this.helper.frame, this.helper.top, this.helper.text])
-        
+
         // закрывашка-открывашка хелпера
         this.helperCloser = {}
         this.helperCloser.container = this.scene.add.container(0, 0).setDepth(999)
@@ -346,7 +360,7 @@ export default class EmoChat {
         //     }
         // })
 
-        this.helperCloser.text = this.scene.add.text(closerX, closerY, 'OPEN\nHELP', {
+        this.helperCloser.text = this.scene.add.text(closerX, closerY, 'CLOSE\nHELP', {
             font: '12px Helvetica',
             fill: '#ffee00ff',
         })
@@ -355,20 +369,21 @@ export default class EmoChat {
             .setAlign('center')
             .setInteractive()
             .on('pointerdown', () => {
-                if (this.helper.container.visible) {
-                    this.helper.container.visible = 0
-                    this.helperCloser.text.setText('OPEN\nHELP')
-                    this.helperCloser.state = false
-                }
-                else {
-                    this.helper.container.visible = 1
-                    this.helperCloser.text.setText('CLOSE\nHELP')
-                    this.helperCloser.state = true
-                }
+                this.toggleHelp()
+                // if (this.helper.container.visible) {
+                //     this.helper.container.visible = 0
+                //     this.helperCloser.text.setText('OPEN\nHELP')
+                //     this.helperCloser.state = false
+                // }
+                // else {
+                //     this.helper.container.visible = 1
+                //     this.helperCloser.text.setText('CLOSE\nHELP')
+                //     this.helperCloser.state = true
+                // }
             })
 
         this.helperCloser.container.add([this.helperCloser.button, this.helperCloser.text])
-        
+        this.menu.container.add(this.helperCloser.container)
     }
     createMessage(reply, occasion, emos) {
         // контейнер
@@ -438,7 +453,7 @@ export default class EmoChat {
             const iconNumber = Math.round((Math.random() * 100))
             this.state.currentEmo = iconNumber
             this.button.icon.setFrame(this.state.currentEmo)
-            
+
         }
 
         this.updateMessageLine();
@@ -517,18 +532,18 @@ export default class EmoChat {
         // подложка
         this.feed.bg = this.scene.add.graphics();
         this.feed.bg.fillStyle(0x000000, 0.5); // 0x212838
-        this.feed.bg.fillRoundedRect(this.config.FEED_X, this.config.FEED_Y, this.config.FEED_WIDTH, this.config.FEED_HEIGHT, 12);
+        this.feed.bg.fillRoundedRect(this.config.FEED_X, this.config.FEED_Y, this.config.FEED_WIDTH, this.config.FEED_HEIGHT, 8);
 
         // подложка нашего набора
         this.feed.messageLineBG = this.scene.add.graphics();
-        this.feed.messageLineBG.fillStyle(0x212838, 1);
-        this.feed.messageLineBG.fillRoundedRect(this.config.FEED_X, this.config.FEED_Y + this.config.FEED_HEIGHT - 40, this.config.FEED_WIDTH, 40, 20);
+        this.feed.messageLineBG.fillStyle(0x212838, 0.9);
+        this.feed.messageLineBG.fillRoundedRect(this.config.FEED_X, this.config.FEED_Y + this.config.FEED_HEIGHT - 40, this.config.FEED_WIDTH, 40, 8);
         this.feed.messageLineBG.startX = this.config.FEED_X + 5
         this.feed.messageLineBG.startY = this.config.FEED_Y + this.config.FEED_HEIGHT - 20
 
         this.feed.container.add([this.feed.bg, this.feed.frame, this.feed.messageLineBG])
     }
-   
+
     // ещё не задействовал
     updateFeed(line) {
         if (!this.feedRows) {
@@ -692,12 +707,38 @@ export default class EmoChat {
         // scene.input.on('pointermove', ...)  → можно добавить потом.
     }
     // методы для жестов
-    nextIcon() { 
-        if (this.menu.container.visible) this.toggleMenu()
-        else console.log('next icon'); 
+    nextIcon() {
+        console.log('next icon', this.state.currentEmo);
+        // if (this.menu.container.visible) this.toggleMenu()
+        // else console.log('next icon');
     }
-    prevIcon() { console.log('prev icon'); }
-    nextCategory() { console.log('next category'); }
+    prevIcon() {
+        console.log('prev icon');
+    }
+    nextCategory() {
+        const prevCat = this.state.currentCat
+        this.state.currentCat++
+        if (this.state.currentCat > this.categories.length - 1) this.state.currentCat = 0
+        // this.state.currentEmo = ??
+        console.log('next category', this.state.currentCat);
+        // console.log('this.menu.rings', this.menu.rings);
+        // this.menu.rings.forEach((ring, index) => {
+        //     console.log('this.menu.rings', ring, index);
+        //     if (index === this.state.currentCat) ring.alpha = 1
+        //     else ring.alpha = 0
+        // })
+        this.menu.rings.forEach((ring, index) => {
+            ring.visible = (index === this.state.currentCat);
+
+        })
+        this.menu.lines.forEach((line, index) => {
+            const isActive = index === this.state.currentCat;
+            line.setAlpha(isActive ? 1 : 0.5);
+
+        })
+        this.setButtonIcon()
+
+    }
     undoEmoji() {
         console.log('undoEmoji')
         this.addEmoToLine(false)
@@ -711,19 +752,29 @@ export default class EmoChat {
         this.addEmoToLine(this.state.currentEmo)
     }
     toggleMenu() {
-        console.log('toggle menu')
+        // console.log('toggle menu')
         this.menu.container.visible = !this.menu.container.visible
-        // if (this.menu.container.visible) {
-        //     this.menu.container.visible = 0
-        //     // this.helper.container.visible = 0
-        // } else {
-        //     this.menu.container.visible = 1
-        //     // if (this.helperCloser.state) this.helper.container.visible = 1
-        // }
+        if (this.helperCloser.state && this.menu.container.visible) this.helper.container.visible = this.menu.container.visible
+        else this.helper.container.visible = 0
+
+        this.openVeer(this.menu.container.visible)
     }
+
     toggleHelp() {
         console.log('toggle help')
-        this.help.container.visible = !this.help.container.visible
+        // this.help.container.visible = !this.help.container.visible
+
+        if (this.helper.container.visible) {
+            this.helper.container.visible = 0
+            this.helperCloser.text.setText('OPEN\nHELP')
+            this.helperCloser.state = false
+        }
+        else {
+            this.helper.container.visible = 1
+            this.helperCloser.text.setText('CLOSE\nHELP')
+            this.helperCloser.state = true
+        }
+
         // if (this.help.container.visible) {
         //     this.help.container.visible = 0
         //     // this.helper.container.visible = 0
@@ -733,9 +784,9 @@ export default class EmoChat {
         // }
     }
     sendMessage() {
-        console.log('send message', this.message.line); 
+        console.log('send message', this.message.line);
         this.commitMessage(this.message.line);
-         setTimeout(() => {
+        setTimeout(() => {
             // this.commitMessage();
             this.clearMessageLine();
             this.updateMessageLine();
@@ -746,6 +797,11 @@ export default class EmoChat {
         // this.button.icon.setFrame(1) // нужно ставить последнюю иконку, или предикцию...
     }
     // вспомогательные методы
+    setButtonIcon() {
+        const cat = this.state.currentCat
+        const icon = this.menu.lines[cat].list[0].frame.name
+        this.button.icon.setFrame(icon)
+    }
     buttonIconlineMove(icon, dx, dy) {
         // console.log('buttonIconlineMove: ', icon, dx, dy);
         const offsetX = dx * 0.1; // величина отклонения (чуть больше для отзывчивости)
@@ -765,7 +821,69 @@ export default class EmoChat {
             },
         });
     }
+    openVeer(state) {
+        // console.log('open veer', this.menu.lines[0].list)
+        const duration = 100
+        this.menu.lines.forEach(cont => {
+            // console.log('cont', cont.list)
+            if (state) {
+                const firstIcon = cont.list[0]
+                const firstIconX = firstIcon.x
+                const firstIconY = firstIcon.y
+                firstIcon.x = firstIcon.defaults.startX
+                firstIcon.y = firstIcon.defaults.startY
+                firstIcon.alpha = 0
+                // console.log('openVeer', firstIconX, firstIconY, )
+                this.scene.tweens.add({
+                    targets: firstIcon,
+                    x: firstIconX,
+                    y: firstIconY,
+                    alpha: 1,
+                    // scale: 1.1,
+                    duration: duration,
+                    ease: "Back.easeOut", // 'Quad.easeOut' 
+                    onComplete: () => {
+                        // notice.destroy()
+                    },
+                });
 
+                for (let index = 1; index < cont.list.length; index++) {
+                    const icon = cont.list[index]
+                    icon.alpha = 0
+                    this.scene.tweens.add({
+                        targets: icon,
+                        // x: firstIconX,
+                        // y: firstIconY,
+                        alpha: icon.defaults.alpha,
+                        // scale: 1.1,
+                        delay: index * 10,
+                        duration: duration + 40,
+                        ease: "Back.easeOut", // 'Quad.easeOut' 
+                        onComplete: () => {
+                            // notice.destroy()
+                        },
+                    });
+                }
+            } else {
+                const icon = this.button.icon
+                this.scene.tweens.add({
+                    targets: icon,
+                    scale: icon.defaults.scale * 1.2,
+                    duration: 50,
+                    // yoyo: true,
+                    ease: "Back.easeOut", // 'Quad.easeOut' 
+                    onComplete: () => {
+                        icon.scale = icon.defaults.scale
+                    },
+                });
+            }
+
+        })
+    }
+    changeCategory() {
+        console.log('changeCategory number: ', this.state.currentCat);
+
+    }
 
 
     // схемы
@@ -823,7 +941,7 @@ export default class EmoChat {
                     up: "sendEmoji", // sendEmoji
                     down: "undoEmoji", // undoEmoji
                     right: "nextIcon", // nextIcon
-                    left: "toggleMenu" // prevIcon
+                    left: "nextCategory" // prevIcon
                 }
             },
             {
