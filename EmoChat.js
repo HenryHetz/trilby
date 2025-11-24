@@ -165,7 +165,7 @@ export default class EmoChat {
     createMenu() {
         // контейнер
         this.menu = {}
-        this.menu.container = this.scene.add.container(0, 0).setDepth(999).setVisible(1)
+        this.menu.container = this.scene.add.container(0, 0).setDepth(999).setVisible(this.devVisible)
 
         // рамка
         this.menu.frame = this.scene.add.graphics()
@@ -405,6 +405,11 @@ export default class EmoChat {
         this.message.frame.lineStyle(4, 0xE60000, 0);
         this.message.frame.strokeRoundedRect(this.config.FEED_X, this.config.FEED_Y + this.config.FEED_HEIGHT + 10, this.config.FEED_WIDTH, 120, 12)
 
+        // this.message.plane = this.scene.add
+        //     .image(this.config.BUTTON_X, this.config.BUTTON_Y, 'emo_plane')
+        //     .setOrigin(0.5)
+        //     .setScale(1.1)
+        
         const content = {
             reply,
             // nickName: 'HENRY', // а зачем он здесь? игрок и так знает кто он... 
@@ -443,9 +448,11 @@ export default class EmoChat {
         if (emoFrame) this.message.line.push(emoFrame);
         else if (this.message.line.length > 0) this.message.line.pop()
 
-        // if (this.message.line.length === 1) this.timer.start(5000, )
+        this.updateMessageLine();
 
-        // // меняем иконки на кнопке
+
+        // чужие модули
+        // // меняем иконки на кнопке - вынести
         if (this.message.line.length === this.config.MESSAGE_LENGTH) {
             this.button.icon.setFrame(119) // самолётик
         } else {
@@ -454,10 +461,26 @@ export default class EmoChat {
             this.state.currentEmo = iconNumber
             this.button.icon.setFrame(this.state.currentEmo)
         }
+        // реакция маленького самолётика - вынести
+        if (this.message.line.length > 0) this.feed.messagePlane.alpha = 1
+        else this.feed.messagePlane.alpha = 0.5
 
-        this.updateMessageLine();
+        if (this.message.line.length === this.config.MESSAGE_LENGTH && emoFrame) this.planeReflex(1000)
     }
-
+    planeReflex(delay, callback) {
+        this.scene.tweens.add({
+            targets: this.feed.messagePlane,
+            // x: targetX,
+            y: this.feed.messagePlane.y - 6,
+            yoyo: true,
+            duration: 50,
+            delay: delay,
+            ease: 'Back.Out',
+            onComplete: () => {
+                if (callback) callback()
+            }
+        });
+    }
     commitMessage() {
         // отправляем в чат
     }
@@ -492,7 +515,7 @@ export default class EmoChat {
                 icon = this.scene.add
                     .image(targetX, targetY + 50, 'emo', frame)
                     .setOrigin(0.5)
-                    .setScale(0.5);
+                    .setScale(0.55);
 
                 sprites[index] = icon;
                 this.message.lineContainer.add(icon)
@@ -540,7 +563,13 @@ export default class EmoChat {
         this.feed.messageLineBG.startX = this.config.FEED_X + 5
         this.feed.messageLineBG.startY = this.config.FEED_Y + this.config.FEED_HEIGHT - 20
 
-        this.feed.container.add([this.feed.bg, this.feed.frame, this.feed.messageLineBG])
+        this.feed.messagePlane = this.scene.add
+            .image(this.config.FEED_X + this.config.FEED_WIDTH - 20, this.config.FEED_Y + this.config.FEED_HEIGHT - 20, 'emo_plane')
+            .setOrigin(0.5)
+            .setScale(0.5)
+            .setAlpha(0.5)
+        
+        this.feed.container.add([this.feed.bg, this.feed.frame, this.feed.messageLineBG, this.feed.messagePlane])
     }
 
     // ещё не задействовал
@@ -768,10 +797,6 @@ export default class EmoChat {
     }
     sendEmoji() {
         console.log('send emoji', this.state.currentEmo)
-        // const emote = this.categories[this.currentCategory].icons[this.currentIcon];
-        // this.updateFeed(`${NickManager.getNick()}: ${emote}`);
-        // const line = `${NickManager.getNick()}: ${this.sentence.join(' ')}`;
-        // this.addFeedRow(line);
         this.addEmoToLine(this.state.currentEmo)
     }
     toggleMenu() {
@@ -815,8 +840,11 @@ export default class EmoChat {
             // this.timer.stop()
         }, 100);
 
+        // чужие модули
         this.button.icon.setFrame(this.state.currentEmo)
         // this.button.icon.setFrame(1) // нужно ставить последнюю иконку, или предикцию...
+        this.planeReflex(0, () => this.feed.messagePlane.alpha = 0.5)
+        
     }
     // вспомогательные методы
     setButtonIcon() {
@@ -853,13 +881,13 @@ export default class EmoChat {
                 const firstIconX = firstIcon.x
                 const firstIconY = firstIcon.y
                 firstIcon.x = firstIcon.defaults.startX
-                firstIcon.y = firstIcon.defaults.startY
+                // firstIcon.y = firstIcon.defaults.startY
                 firstIcon.alpha = 0
                 // console.log('openVeer', firstIconX, firstIconY, )
                 this.scene.tweens.add({
                     targets: firstIcon,
                     x: firstIconX,
-                    y: firstIconY,
+                    // y: firstIconY,
                     alpha: 1,
                     // scale: 1.1,
                     duration: duration,
