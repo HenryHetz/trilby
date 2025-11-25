@@ -25,8 +25,8 @@ export default class EmoChat {
             AREA_HEIGHT: 150,
             TAP_MAX_DISTANCE: 3,
             TAP_MAX_DURATION: 250,
-            TAP_MIN_DURATION: 20,
-            TAP_LONG_DURATION: 300,
+            TAP_MIN_DURATION: 5,
+            TAP_LONG_DURATION: 200,
             SWIPE_MIN_DISTANCE: 50,
             SWIPE_MAX_TIME: 1000,
             DRAG_HOLD_TIME: 400,
@@ -650,7 +650,7 @@ export default class EmoChat {
             startX = p.x;
             startY = p.y;
             startTime = scene.time.now;
-            // console.log('pointerdown', startX, startY, startTime)
+            console.log('pointerdown', startTime)
         });
 
         scene.input.on("pointerup", (p) => {
@@ -661,6 +661,7 @@ export default class EmoChat {
             const dist = Phaser.Math.Distance.Between(startX, startY, p.x, p.y);
             const dur = scene.time.now - startTime;
             startTime = 0;
+            console.log('dur', dur, 'dist', dist)
 
             // 👇 короткий тап 
             if (dist < cfg.TAP_MAX_DISTANCE && dur < cfg.TAP_LONG_DURATION && dur > cfg.TAP_MIN_DURATION) {
