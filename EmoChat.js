@@ -119,7 +119,7 @@ export default class EmoChat {
         this.createFeed()
         this.createMessage()
         this.createGestureSchemes()
-        this.currentScheme = this.gestureSchemes[1];
+        this.currentScheme = this.gestureSchemes[0];
         this.updateHelper(this.currentScheme)
 
         // this.timer = new EmoChat.Timer(
@@ -664,7 +664,7 @@ export default class EmoChat {
             console.log('dur', dur, 'dist', dist)
 
             // 👇 короткий тап 
-            if (dist < cfg.TAP_MAX_DISTANCE && dur < cfg.TAP_LONG_DURATION && dur > cfg.TAP_MIN_DURATION) {
+            if (dist < cfg.TAP_MAX_DISTANCE && dur < cfg.TAP_LONG_DURATION ) { // && dur > cfg.TAP_MIN_DURATION
                 // this.toggleMenu();
                 this.performGesture("tap");
                 return;
@@ -969,17 +969,17 @@ export default class EmoChat {
             //         left: "toggleMenu" // prevIcon
             //     }
             // },
-            // {
-            //     name: "4",
-            //     handlers: {
-            //         tap: "sendEmoji", // toggleMenu
-            //         // double: "sendMessage", // sendMessage
-            //         up: "sendMessage", // sendEmoji
-            //         down: "undoEmoji", // undoEmoji
-            //         right: "nextIcon", // nextIcon
-            //         left: "toggleMenu" // prevIcon
-            //     }
-            // },
+            {
+                name: "4",
+                handlers: {
+                    tap: "sendMessage", // toggleMenu
+                    long: "toggleMenu", // sendMessage
+                    up: "upSelector", // sendEmoji
+                    down: "downSelector", // undoEmoji
+                    right: "nextIcon", // nextIcon
+                    left: "prevIcon" // prevIcon
+                }
+            },
             {
                 name: "5",
                 handlers: {
