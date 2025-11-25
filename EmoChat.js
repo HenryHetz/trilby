@@ -23,8 +23,9 @@ export default class EmoChat {
             AREA_RADIUS: 75,
             AREA_WIDTH: 150,
             AREA_HEIGHT: 150,
-            TAP_MAX_DISTANCE: 10,
+            TAP_MAX_DISTANCE: 3,
             TAP_MAX_DURATION: 250,
+            TAP_MIN_DURATION: 20,
             TAP_LONG_DURATION: 300,
             SWIPE_MIN_DISTANCE: 50,
             SWIPE_MAX_TIME: 500,
@@ -662,7 +663,7 @@ export default class EmoChat {
             startTime = 0;
 
             // 👇 короткий тап 
-            if (dist < cfg.TAP_MAX_DISTANCE && dur < cfg.TAP_MAX_DURATION) {
+            if (dist < cfg.TAP_MAX_DISTANCE && dur < cfg.TAP_LONG_DURATION && dur > cfg.TAP_MIN_DURATION) {
                 // this.toggleMenu();
                 this.performGesture("tap");
                 return;
