@@ -28,7 +28,7 @@ export default class EmoChat {
             TAP_MIN_DURATION: 20,
             TAP_LONG_DURATION: 300,
             SWIPE_MIN_DISTANCE: 50,
-            SWIPE_MAX_TIME: 500,
+            SWIPE_MAX_TIME: 1000,
             DRAG_HOLD_TIME: 400,
             DRAG_MIN_DISTANCE: 10,
             FEED_X: feed.x,
