@@ -38,7 +38,8 @@ export default class EmoChat {
             MENU_WIDTH: 540,
             MENU_HEIGHT: 300,
             MESSAGE_LENGTH: 3,
-            DOUBLE_TAP_DELAY: 250
+            DOUBLE_TAP_DELAY: 250,
+            ICONS_PER_CAT: 5
         };
     }
     init() {
@@ -46,6 +47,7 @@ export default class EmoChat {
         this.initArea()
         this.initState()
         this.initCategories()
+        // this.initIconSet()
 
         // 
         this.lastTapTime = 0;
@@ -67,6 +69,20 @@ export default class EmoChat {
         );
 
     }
+    initState() {
+        this.state = {
+            currentCat: 0,
+            currentIconIndex: 0,   // индекс иконки в категории
+            currentEmo: 1          // фактический frame спрайта
+        };
+
+        this.state.update = object => {
+            for (const key in object) {
+                if (!Object.hasOwn(object, key)) continue;
+                this.state[key] = object[key];
+            }
+        };
+    }
     initEmoji() {
         // загружаем и активируем картинки - может lazy?
         // пока временное решение
@@ -82,27 +98,13 @@ export default class EmoChat {
             'POSITIVE_8': 23,
         }
     }
-    initState() {
-        this.state = {
-            currentCat: 0, // брать из записи или последнее или по умолчанию?
-            currentEmo: undefined,
-
-        }
-
-        this.state.update = object => {
-            for (const key in object) {
-                if (!Object.hasOwn(object, key)) continue;
-                this.state[key] = object[key];
-            }
-
-        }
-    }
     initCategories() {
         const categoryNames = ['POSITIVE', 'NEGATIVE', 'FUN', 'REACTION', 'WORDS'];
         const iconsPerCategory = 5; // сколько кадров у каждой категории
         this.categories = categoryNames.map(name => ({
             name,
-            icons: Array.from({ length: iconsPerCategory }, (_, i) => `${name}_${i}`)
+            // icons: Array.from({ length: iconsPerCategory }, (_, i) => `${name}_${i}`)
+            icons: []
         }));
         // console.log(this.categories)
         // const cat = this.categories.find(c => c.name === 'POSITIVE');
@@ -200,8 +202,6 @@ export default class EmoChat {
                 .fillRoundedRect(x + 275, y - 25, 290, 50, 25) // .fillRoundedRect(x + 95, y - 25, 410, 50, 25)
             this.menu.container.add(wrapper)
 
-            const category = this.categories[index];
-            // console.log(category)
             this.menu.rings[index] = this.scene.add.graphics()
                 .lineStyle(4, 0xE60000, 1)
                 .strokeCircle(x + this.config.MENU_WIDTH, y, 26)
@@ -216,12 +216,13 @@ export default class EmoChat {
 
 
 
-            for (let i = 0; i < category.icons.length; i++) {
+            for (let i = 0; i < this.config.ICONS_PER_CAT; i++) {
                 const x = this.config.MENU_WIDTH - 60 * i
                 const y = 0
-                const iconName = category.icons[i]
-                const iconNumber = this.iconSet[iconName] ? this.iconSet[iconName] : Math.round((Math.random() * 100))
-                // console.log(iconName, iconNumber)
+               
+                const iconNumber = Math.round((Math.random() * 100))
+                this.categories[index].icons.push(iconNumber)
+                // console.log(iconNumber)
 
                 const icon = this.scene.add
                     .image(x, y, 'emo', iconNumber)
@@ -242,7 +243,7 @@ export default class EmoChat {
         // закрывашка-открывашка меню
         this.menuCloser = {}
         // this.menuCloser.container = this.scene.add.container(0, 0).setDepth(999)
-        this.menuCloser.state = true
+        // this.menuCloser.state = true
 
         const x = this.config.BUTTON_X + 40
         const y = this.config.BUTTON_Y + 120
@@ -275,16 +276,17 @@ export default class EmoChat {
             .setAlign('center')
             .setInteractive()
             .on('pointerdown', () => {
-                if (this.menu.container.visible) {
-                    this.menu.container.visible = 0
-                    this.menuCloser.text.setText('OPEN\nMENU')
-                    this.menuCloser.state = false
-                }
-                else {
-                    this.menu.container.visible = 1
-                    this.menuCloser.text.setText('CLOSE\nMENU')
-                    this.menuCloser.state = true
-                }
+                this.toggleMenu()
+                // if (this.menu.container.visible) {
+                //     this.menu.container.visible = 0
+                //     // this.menuCloser.text.setText('OPEN\nMENU')
+                //     // this.menuCloser.state = false
+                // }
+                // else {
+                //     this.menu.container.visible = 1
+                //     // this.menuCloser.text.setText('CLOSE\nMENU')
+                //     // this.menuCloser.state = true
+                // }
             })
 
         this.menu.container.add([this.menuCloser.button, this.menuCloser.text])
@@ -410,7 +412,7 @@ export default class EmoChat {
         //     .image(this.config.BUTTON_X, this.config.BUTTON_Y, 'emo_plane')
         //     .setOrigin(0.5)
         //     .setScale(1.1)
-        
+
         const content = {
             reply,
             // nickName: 'HENRY', // а зачем он здесь? игрок и так знает кто он... 
@@ -427,48 +429,35 @@ export default class EmoChat {
     }
     addEmoToLine(emoFrame) {
         // TODO: позже добавим проверки на длину/ширину и веса слов
-        // if (this.message.line.length >= this.config.MESSAGE_LENGTH && emoFrame) {
-        //     // shake line
-        //     // this.message.sprites.forEach(icon => {
-        //     //     this.scene.tweens.add({
-        //     //         targets: icon,
-        //     //         // x: targetX,
-        //     //         y: icon.y - 20,
-        //     //         yoyo: true,
-        //     //         duration: 20,
-        //     //         ease: 'Back.Out'
-        //     //     });
-        //     // })
-        //     // return
-
-        //     // send
-        //     this.sendMessage();
-        //     return
-        // }
 
         if (emoFrame) this.message.line.push(emoFrame);
         else if (this.message.line.length > 0) this.message.line.pop()
 
         this.updateMessageLine();
-
-
+        this.updateButtonIcon();
+        this.updatePlane()
         // чужие модули
-        // // меняем иконки на кнопке - вынести
-        if (this.message.line.length === this.config.MESSAGE_LENGTH) {
-            this.button.icon.setFrame(119) // самолётик
-        } else {
-            // пока рандом
-            const iconNumber = Math.round((Math.random() * 100))
-            this.state.currentEmo = iconNumber
-            this.button.icon.setFrame(this.state.currentEmo)
-        }
+        // меняем иконки на кнопке - вынести
+        // if (this.message.line.length === this.config.MESSAGE_LENGTH) {
+        //     this.button.icon.setFrame(119) // самолётик
+        // } else {
+        //     // пока рандом
+        //     const iconNumber = Math.round((Math.random() * 100))
+        //     this.state.currentEmo = iconNumber
+        //     this.button.icon.setFrame(this.state.currentEmo)
+        // }
+
+
+    }
+    updatePlane() {
         // реакция маленького самолётика - вынести
         if (this.message.line.length > 0) this.feed.messagePlane.alpha = 1
         else this.feed.messagePlane.alpha = 0.5
 
-        if (this.message.line.length === this.config.MESSAGE_LENGTH && emoFrame) this.planeReflex(1000)
+        if (this.message.line.length === this.config.MESSAGE_LENGTH) this.planeReflex(1000)
     }
     planeReflex(delay, callback) {
+        // заменить на интервал и проверку после таймера
         this.scene.tweens.add({
             targets: this.feed.messagePlane,
             // x: targetX,
@@ -569,7 +558,7 @@ export default class EmoChat {
             .setOrigin(0.5)
             .setScale(0.5)
             .setAlpha(0.5)
-        
+
         this.feed.container.add([this.feed.bg, this.feed.frame, this.feed.messageLineBG, this.feed.messagePlane])
     }
 
@@ -650,7 +639,7 @@ export default class EmoChat {
             startX = p.x;
             startY = p.y;
             startTime = scene.time.now;
-            console.log('pointerdown', startTime)
+            // console.log('pointerdown', startTime)
         });
 
         scene.input.on("pointerup", (p) => {
@@ -661,10 +650,10 @@ export default class EmoChat {
             const dist = Phaser.Math.Distance.Between(startX, startY, p.x, p.y);
             const dur = scene.time.now - startTime;
             startTime = 0;
-            console.log('dur', dur, 'dist', dist)
+            // console.log('dur', dur, 'dist', dist)
 
             // 👇 короткий тап 
-            if (dist < cfg.TAP_MAX_DISTANCE && dur < cfg.TAP_LONG_DURATION ) { // && dur > cfg.TAP_MIN_DURATION
+            if (dist < cfg.TAP_MAX_DISTANCE && dur < cfg.TAP_LONG_DURATION) { // && dur > cfg.TAP_MIN_DURATION
                 // this.toggleMenu();
                 this.performGesture("tap");
                 return;
@@ -738,68 +727,61 @@ export default class EmoChat {
     }
     // методы для жестов
     nextIcon() {
-        console.log('next icon', this.state.currentEmo);
-        // if (this.menu.container.visible) this.toggleMenu()
-        // else console.log('next icon');
+        // console.log('next icon', this.state.currentEmo);
+        const cat = this.state.currentCat;
+        const nextIndex = this.state.currentIconIndex - 1; // поменял последовательность, инверсия
+        this.setCurrentEmo(cat, nextIndex);
     }
     prevIcon() {
-        console.log('prev icon');
+        // console.log('prev icon', this.state.currentEmo);
+        const cat = this.state.currentCat;
+        const prevIndex = this.state.currentIconIndex + 1; // поменял последовательность, инверсия
+        this.setCurrentEmo(cat, prevIndex);
+        // console.log('prev icon new', this.state.currentIconIndex)
+        const icon = this.menu.lines[cat].list[this.state.currentIconIndex]
+        // console.log('prev icon icon', this.menu.lines[cat].list, icon.x, this.menu.rings[cat].x)
+        // this.menu.rings[cat].x = icon.x
+        // иконка и кольцо в разных контейнерах
     }
     nextCategory() {
-        const prevCat = this.state.currentCat
-        this.state.currentCat++
-        if (this.state.currentCat > this.categories.length - 1) this.state.currentCat = 0
-        // this.state.currentEmo = ??
-        console.log('next category', this.state.currentCat);
-        // console.log('this.menu.rings', this.menu.rings);
-        // this.menu.rings.forEach((ring, index) => {
-        //     console.log('this.menu.rings', ring, index);
-        //     if (index === this.state.currentCat) ring.alpha = 1
-        //     else ring.alpha = 0
-        // })
-        this.menu.rings.forEach((ring, index) => {
-            ring.visible = (index === this.state.currentCat);
+        const prevCat = this.state.currentCat;
+        const nextCat = (prevCat + 1) % this.categories.length;
 
-        })
-        this.menu.lines.forEach((line, index) => {
-            const isActive = index === this.state.currentCat;
-            line.setAlpha(isActive ? 1 : 0.5);
+        this.state.currentCat = nextCat;
+        // визуально подсветили категорию
+        this.menu.rings.forEach((ring, index) => ring.visible = (index === nextCat));
+        this.menu.lines.forEach((line, index) => line.setAlpha(index === nextCat ? 1 : 0.5));
 
-        })
-        this.setButtonIcon()
+        // ставим первую иконку новой категории
+        this.setCurrentEmo(nextCat, 0);
 
+        // const icon = this.menu.lines[nextCat].list[this.state.currentIconIndex]
+        // console.log('nextCategory', icon.x, this.menu.rings[nextCat].x)
     }
+
     upSelector() {
         if (this.message.line.length === this.config.MESSAGE_LENGTH) {
             this.sendMessage();
         } else {
             this.sendEmoji()
         }
-
-             // меняем иконки на кнопке
-        // if (this.message.line.length === this.config.MESSAGE_LENGTH) {
-        //     this.button.icon.setFrame(119) // самолётик
-        // } else {
-        //     // пока рандом
-        //     const iconNumber = Math.round((Math.random() * 100))
-        //     this.state.currentEmo = iconNumber
-        //     this.button.icon.setFrame(this.state.currentEmo)
-        // }
     }
     downSelector() {
-         if (this.message.line.length === 0) {
+        if (this.message.line.length === 0) {
             this.nextCategory();
         } else {
             this.undoEmoji()
         }
     }
     undoEmoji() {
-        console.log('undoEmoji')
+        // console.log('undoEmoji')
         this.addEmoToLine(false)
+        this.setNextEmo();
     }
     sendEmoji() {
-        console.log('send emoji', this.state.currentEmo)
+        // console.log('send emoji', this.state.currentEmo)
         this.addEmoToLine(this.state.currentEmo)
+        this.setNextEmo();
     }
     toggleMenu() {
         // console.log('toggle menu')
@@ -810,7 +792,7 @@ export default class EmoChat {
         this.openVeer(this.menu.container.visible)
     }
     toggleHelp() {
-        console.log('toggle help')
+        // console.log('toggle help')
         // this.help.container.visible = !this.help.container.visible
 
         if (this.helper.container.visible) {
@@ -833,27 +815,78 @@ export default class EmoChat {
         // }
     }
     sendMessage() {
-        console.log('send message', this.message.line);
+        // console.log('send message', this.message.line);
         this.commitMessage(this.message.line);
         setTimeout(() => {
             // this.commitMessage();
             this.clearMessageLine();
             this.updateMessageLine();
+            this.updateButtonIcon();
             // this.timer.stop()
         }, 100);
 
         // чужие модули
-        this.button.icon.setFrame(this.state.currentEmo)
         // this.button.icon.setFrame(1) // нужно ставить последнюю иконку, или предикцию...
         this.planeReflex(0, () => this.feed.messagePlane.alpha = 0.5)
-        
+
+    }
+    // Маппинг “категория+индекс → frame”
+    getFrameFor(catIndex, iconIndex) {
+        const cat = this.categories[catIndex];
+        if (!cat) cat = 0; // дефолт
+
+        const iconName = cat.icons[iconIndex];
+        console.log('getFrameFor', catIndex, iconIndex, iconName ); // this.iconSet[iconName]
+        return iconName ?? 1;
+    }
+    // иконка на кнопку
+    setCurrentEmo(catIndex, iconIndex) {
+        // console.log('setCurrentEmo1', catIndex, iconIndex);
+        // нормализуем индексы
+        const catsCount = this.categories.length;
+        catIndex = (catIndex + catsCount) % catsCount;
+
+        const iconsCount = this.categories[catIndex].icons.length;
+        iconIndex = (iconIndex + iconsCount) % iconsCount;
+
+        const frame = this.getFrameFor(catIndex, iconIndex);
+        // console.log('setCurrentEmo2', catIndex, iconIndex, frame);
+        this.state.update({
+            currentCat: catIndex,
+            currentIconIndex: iconIndex,
+            currentEmo: frame
+        });
+
+        this.updateButtonIcon();
+    }
+    setNextEmo() {
+        // если строки ещё нет (теоретически), просто обновим кнопку
+        if (!this.message) {
+            this.updateButtonIcon();
+            return;
+        }
+
+        // если строка заполнена – логика кнопки (самолётик) решается в updateButtonIcon
+        if (this.message.line.length === this.config.MESSAGE_LENGTH) {
+            this.updateButtonIcon();
+            return;
+        }
+
+        const cat = this.state.currentCat;
+        const nextIndex = this.state.currentIconIndex + 1;
+
+        this.setCurrentEmo(cat, nextIndex);
+    }
+    updateButtonIcon() {
+        // console.log('updateButtonIcon', this.state.currentEmo);
+        // если строка заполнена – показываем самолётик
+        if (this.message && this.message.line.length === this.config.MESSAGE_LENGTH) {
+            this.button.icon.setFrame(119); // самолётик
+        } else {
+            this.button.icon.setFrame(this.state.currentEmo);
+        }
     }
     // вспомогательные методы
-    setButtonIcon() {
-        const cat = this.state.currentCat
-        const icon = this.menu.lines[cat].list[0].frame.name
-        this.button.icon.setFrame(icon)
-    }
     buttonIconlineMove(icon, dx, dy) {
         // console.log('buttonIconlineMove: ', icon, dx, dy);
         const offsetX = dx * 0.1; // величина отклонения (чуть больше для отзывчивости)
