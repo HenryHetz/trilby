@@ -25,8 +25,8 @@ export default class EmoChat {
             AREA_HEIGHT: 150,
             TAP_MAX_DISTANCE: 3,
             TAP_MAX_DURATION: 250,
-            TAP_MIN_DURATION: 5,
-            TAP_LONG_DURATION: 100,
+            // TAP_MIN_DURATION: 5,
+            TAP_LONG_DURATION: 200,
             SWIPE_MIN_DISTANCE: 50,
             SWIPE_MAX_TIME: 1000,
             DRAG_HOLD_TIME: 400,
@@ -43,7 +43,7 @@ export default class EmoChat {
         };
     }
     init() {
-        this.initEmoji()
+        this.initEmoSet()
         this.initArea()
         this.initState()
         this.initCategories()
@@ -83,9 +83,10 @@ export default class EmoChat {
             }
         };
     }
-    initEmoji() {
+    initEmoSet() {
         // загружаем и активируем картинки - может lazy?
         // пока временное решение
+        // и скорее всего оно будет другое - нужно читать инструкцию к картинкам...
         this.iconSet = {
             'POSITIVE_0': 1,
             'POSITIVE_1': 6,
@@ -188,7 +189,7 @@ export default class EmoChat {
         // веер / линии / категории
         this.menu.lines = []
         this.menu.rings = []
-        this.menu.container.add(this.menu.lines)
+        // this.menu.container.add(this.menu.lines) // это не сработает
 
         for (let index = 0; index < this.categories.length; index++) {
             const gapX = 30
@@ -743,6 +744,13 @@ export default class EmoChat {
         // this.menu.rings[cat].x = icon.x
         // иконка и кольцо в разных контейнерах
     }
+    eraseLine() {
+        if (this.message.line.length > 0) {
+            this.clearMessageLine()
+            this.updateMessageLine()
+            this.setCurrentEmo(this.state.currentCat, this.state.currentIconIndex)
+        }
+    }
     nextCategory() {
         const prevCat = this.state.currentCat;
         const nextCat = (prevCat + 1) % this.categories.length;
@@ -758,7 +766,30 @@ export default class EmoChat {
         // const icon = this.menu.lines[nextCat].list[this.state.currentIconIndex]
         // console.log('nextCategory', icon.x, this.menu.rings[nextCat].x)
     }
-
+    rightSelector() {
+        if (this.menu.container.visible) {
+            this.closeMenu()
+        } else {
+            this.nextIcon()
+        }
+    }
+    leftSelector() {
+        if (!this.menu.container.visible) {
+            this.openMenu()
+        } else {
+            
+        }
+    }
+    tapSelector() {
+         if (this.message.line.length > 0) {
+            this.sendMessage();
+        } else {
+            // отправить сразу в фид эмо
+            this.addEmoToLine(this.state.currentEmo)
+            this.sendMessage();
+            // this.sendEmoji()
+        }
+    }
     upSelector() {
         if (this.message.line.length === this.config.MESSAGE_LENGTH) {
             this.sendMessage();
@@ -789,6 +820,17 @@ export default class EmoChat {
         if (this.helperCloser.state && this.menu.container.visible) this.helper.container.visible = this.menu.container.visible
         else this.helper.container.visible = 0
 
+        this.openVeer(this.menu.container.visible)
+    }
+    openMenu() {
+        this.menu.container.visible = 1
+        if (this.helperCloser.state) this.helper.container.visible = 1
+        else this.helper.container.visible = 0
+
+        this.openVeer(this.menu.container.visible)
+    }
+    closeMenu() {
+        this.menu.container.visible = 0
         this.openVeer(this.menu.container.visible)
     }
     toggleHelp() {
@@ -980,37 +1022,37 @@ export default class EmoChat {
             //         left: "prevIcon"
             //     }
             // },
-            // {
-            //     name: "2",
-            //     handlers: {
-            //         tap: "sendEmoji", // toggleMenu
-            //         double: "toggleMenu", // sendMessage
-            //         up: "sendMessage", // sendEmoji
-            //         down: "undoEmoji", // undoEmoji
-            //         right: "nextIcon", // nextIcon
-            //         left: "prevIcon" // prevIcon
-            //     }
-            // },
-            // {
-            //     name: "3",
-            //     handlers: {
-            //         tap: "sendEmoji", // toggleMenu
-            //         double: "sendMessage", // sendMessage
-            //         up: "sendEmoji", // sendEmoji
-            //         down: "undoEmoji", // undoEmoji
-            //         right: "nextIcon", // nextIcon
-            //         left: "toggleMenu" // prevIcon
-            //     }
-            // },
-            {
-                name: "4",
+           {
+                name: "2",
                 handlers: {
-                    tap: "sendMessage", // toggleMenu
-                    long: "toggleMenu", // sendMessage
+                    tap: "sendMessage", // sendMessage 
+                    // long: "toggleMenu", // toggleMenu
                     up: "upSelector", // sendEmoji
                     down: "downSelector", // undoEmoji
                     right: "nextIcon", // nextIcon
-                    left: "prevIcon" // prevIcon
+                    left: "toggleMenu" // prevIcon 
+                }
+            },
+            {
+                name: "3",
+                handlers: {
+                    tap: "tapSelector", // sendMessage 
+                    // long: "toggleMenu", // toggleMenu
+                    up: "upSelector", // sendEmoji
+                    down: "downSelector", // undoEmoji
+                    right: "rightSelector", // nextIcon
+                    left: "leftSelector" // prevIcon 
+                }
+            },
+            {
+                name: "4",
+                handlers: {
+                    tap: "tapSelector", // sendMessage 
+                    long: "toggleMenu", // toggleMenu
+                    up: "upSelector", // sendEmoji
+                    down: "downSelector", // undoEmoji
+                    right: "nextIcon", // nextIcon
+                    left: "eraseLine" // prevIcon 
                 }
             },
             {
