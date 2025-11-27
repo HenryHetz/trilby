@@ -189,6 +189,21 @@ export default class EmoChat {
         // веер / линии / категории
         this.menu.lines = []
         this.menu.rings = []
+        this.menu.catShadows = []
+
+        // var2
+        this.menu.catShadow = this.scene.add
+                    .image(this.config.BUTTON_X - 60, this.config.BUTTON_Y, 'emo', 1)
+                    .setOrigin(0.5)
+                    .setScale(0.7) // 0.9
+                    .setAlpha(0) // .setAlpha(1 - i * 0.15)
+                    .setDepth(1000)
+            this.menu.catShadow.defaults = {
+                alpha: this.menu.catShadow.alpha,
+                scale: this.menu.catShadow.scale,
+                x: this.menu.catShadow.x,
+                y: this.menu.catShadow.y
+            }
         // this.menu.container.add(this.menu.lines) // это не сработает
 
         for (let index = 0; index < this.categories.length; index++) {
@@ -209,6 +224,20 @@ export default class EmoChat {
                 .setVisible(index === this.state.currentCat ? 1 : 0)
             this.menu.container.add(this.menu.rings[index])
 
+            this.menu.catShadows[index] = this.scene.add
+                    .image(x + this.config.MENU_WIDTH, y, 'emo', 1)
+                    .setOrigin(0.5)
+                    .setScale(0.7) // 0.9
+                    .setAlpha(0) // .setAlpha(1 - i * 0.15)
+                    .setDepth(1000)
+            this.menu.catShadows[index].defaults = {
+                alpha: this.menu.catShadows[index].alpha,
+                scale: this.menu.catShadows[index].scale,
+                x: this.menu.catShadows[index].x,
+                y: this.menu.catShadows[index].y
+            }
+            // this.menu.container.add(this.menu.rings[index])
+            // console.log('catShadows',this.menu.catShadows[index], x, y)
 
             this.menu.lines[index] = this.scene.add.container(x, y)
                 .setDepth()
@@ -238,6 +267,10 @@ export default class EmoChat {
                 }
                 // if (i === 0)console.log('icon.defaults', icon.defaults)
                 this.menu.lines[index].add(icon)
+
+                if (i === 0) {
+                    this.menu.catShadows[index].setFrame(iconNumber)
+                }
             }
         }
 
@@ -437,30 +470,10 @@ export default class EmoChat {
         this.updateMessageLine();
         this.updateButtonIcon();
         this.updatePlane()
-    }
-    updatePlane() {
-        // реакция маленького самолётика - вынести
-        if (this.message.line.length > 0) this.feed.messagePlane.alpha = 1
-        else this.feed.messagePlane.alpha = 0.5
 
-        if (this.message.line.length === this.config.MESSAGE_LENGTH) this.reflexPlane(1000)
+        // this.updatePredictLine() // тоже не очень
     }
-    reflexPlane(delay, callback) {
-        // заменить на интервал и проверку после таймера
-        this.scene.tweens.add({
-            targets: this.feed.messagePlane,
-            // x: targetX,
-            y: this.feed.messagePlane.defaults.y - 6,
-            yoyo: true,
-            duration: 50,
-            delay: delay,
-            ease: 'Back.Out',
-            onComplete: () => {
-                if (callback) callback()
-                this.feed.messagePlane.y = this.feed.messagePlane.defaults.y    
-            }
-        });
-    }
+    
     
     clearMessageLine() {
         this.message.line.length = 0
@@ -517,6 +530,72 @@ export default class EmoChat {
             sprites[i].destroy();
         }
         sprites.length = line.length;
+    }
+    updatePredictLine() {
+        const line = this.message.line;
+        const sprites = this.message.sprites;
+        const spacing = 36; // расстояние между иконками
+        const targetY = this.feed.messageLineBG.startY;
+        // центрируем по BG (можно подправить формулу)
+        const baseX = this.feed.messageLineBG.startX + 16;
+
+        for (let index = 0; index < 3; index++) {
+            if (line[index]) continue
+            if (!line[index - 1]) continue
+
+            const frame = this.state.currentEmo;
+            const targetX = baseX + index * spacing;
+
+            // let icon = this.state.currentEmo;
+
+            // if (!icon) {
+            //     // это НОВАЯ иконка → создаём у кнопки и анимируем "прилёт"
+            const icon = this.scene.add
+                    .image(targetX, targetY, 'emo', frame)
+                    .setOrigin(0.5)
+                    .setScale(0.55)
+                    .setAlpha(0.3)
+                    .setDepth(1000)
+
+            //     sprites[index] = icon;
+            //     this.message.lineContainer.add(icon)
+
+            //     this.scene.tweens.add({
+            //         targets: icon,
+            //         // x: targetX,
+            //         y: targetY,
+            //         duration: 50,
+            //         ease: 'Back.Out'
+            //     });
+            // } else {
+            //     // уже существующая — просто обновляем кадр и позицию без анимации
+            //     icon.setFrame(frame);
+            //     icon.setPosition(targetX, targetY);
+            // }
+        }
+    }
+    updatePlane() {
+        // реакция маленького самолётика - вынести
+        if (this.message.line.length > 0) this.feed.messagePlane.alpha = 1
+        else this.feed.messagePlane.alpha = 0.5
+
+        if (this.message.line.length === this.config.MESSAGE_LENGTH) this.reflexPlane(1000)
+    }
+    reflexPlane(delay, callback) {
+        // заменить на интервал и проверку после таймера
+        this.scene.tweens.add({
+            targets: this.feed.messagePlane,
+            // x: targetX,
+            y: this.feed.messagePlane.defaults.y - 6,
+            yoyo: true,
+            duration: 50,
+            delay: delay,
+            ease: 'Back.Out',
+            onComplete: () => {
+                if (callback) callback()
+                this.feed.messagePlane.y = this.feed.messagePlane.defaults.y    
+            }
+        });
     }
 
     createFeed() {
@@ -757,6 +836,71 @@ export default class EmoChat {
 
         // const icon = this.menu.lines[nextCat].list[this.state.currentIconIndex]
         // console.log('nextCategory', icon.x, this.menu.rings[nextCat].x)
+        this.shadowShow(prevCat, nextCat)
+    }
+    shadowShow(prev, next) {
+        console.log('shadowShow', prev, next)
+        if (this.menu.container.visible) return
+        const duration = 120
+        const icon = this.menu.catShadow
+        icon.y = icon.defaults.y - (3 - next) * 30
+        icon.alpha = 0
+
+        this.scene.tweens.add({
+            targets: icon,
+            // x: ,
+            y: icon.y + 30,
+            alpha: 0.7,
+            // scale: 1.1,
+            duration: duration,
+            // ease: "Back.easeOut", // 'Quad.easeOut'
+            onComplete: () => {
+                icon.setFrame(this.state.currentEmo)
+                this.scene.tweens.add({
+                    targets: icon,
+                    // x: ,
+                    y: icon.y + 30,
+                    alpha: 0,
+                    delay: duration,
+                    duration: duration * 2,
+                    ease: "Back.easeIn", // 'Quad.easeOut'
+                    onComplete: () => {
+                        // notice.destroy()
+                        icon.y = icon.defaults.y
+                    },
+                });
+            },
+        });
+
+        // this.menu.catShadows[prev].alpha = 0.5
+        // this.scene.tweens.add({
+        //     targets: this.menu.catShadows[prev],
+        //     // x: ,
+        //     // y: ,
+        //     alpha: 0,
+        //     // scale: 1.1,
+        //     duration: duration,
+        //     ease: "Back.easeOut", // 'Quad.easeOut' 
+        //     onComplete: () => {
+        //         // notice.destroy()
+        //     },
+        // });
+
+        // this.menu.catShadows[next].alpha = 0
+        // this.scene.tweens.add({
+        //     targets: this.menu.catShadows[next],
+        //     // x: ,
+        //     // y: ,
+        //     alpha: 0.5,
+        //     // scale: this.menu.catShadows[next] * 1.1,
+        //     duration: duration,
+        //     // delay: duration / 2,
+        //     yoyo: true,
+        //     ease: "Back.easeOut", // 'Quad.easeOut' 
+        //     onComplete: () => {
+        //         // notice.destroy()
+        //     },
+        // });
     }
     rightSelector() {
         if (this.menu.container.visible) {
