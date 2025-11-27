@@ -431,50 +431,37 @@ export default class EmoChat {
     addEmoToLine(emoFrame) {
         // TODO: позже добавим проверки на длину/ширину и веса слов
 
-        if (emoFrame) this.message.line.push(emoFrame);
-        else if (this.message.line.length > 0) this.message.line.pop()
+        if (emoFrame && this.message.line.length <= this.config.MESSAGE_LENGTH) this.message.line.push(emoFrame);
+        if (!emoFrame && this.message.line.length > 0) this.message.line.pop()
 
         this.updateMessageLine();
         this.updateButtonIcon();
         this.updatePlane()
-        // чужие модули
-        // меняем иконки на кнопке - вынести
-        // if (this.message.line.length === this.config.MESSAGE_LENGTH) {
-        //     this.button.icon.setFrame(119) // самолётик
-        // } else {
-        //     // пока рандом
-        //     const iconNumber = Math.round((Math.random() * 100))
-        //     this.state.currentEmo = iconNumber
-        //     this.button.icon.setFrame(this.state.currentEmo)
-        // }
-
-
     }
     updatePlane() {
         // реакция маленького самолётика - вынести
         if (this.message.line.length > 0) this.feed.messagePlane.alpha = 1
         else this.feed.messagePlane.alpha = 0.5
 
-        if (this.message.line.length === this.config.MESSAGE_LENGTH) this.planeReflex(1000)
+        if (this.message.line.length === this.config.MESSAGE_LENGTH) this.reflexPlane(1000)
     }
-    planeReflex(delay, callback) {
+    reflexPlane(delay, callback) {
         // заменить на интервал и проверку после таймера
         this.scene.tweens.add({
             targets: this.feed.messagePlane,
             // x: targetX,
-            y: this.feed.messagePlane.y - 6,
+            y: this.feed.messagePlane.defaults.y - 6,
             yoyo: true,
             duration: 50,
             delay: delay,
             ease: 'Back.Out',
             onComplete: () => {
                 if (callback) callback()
+                this.feed.messagePlane.y = this.feed.messagePlane.defaults.y    
             }
         });
     }
-    commitMessage() {
-        // отправляем в чат
-    }
+    
     clearMessageLine() {
         this.message.line.length = 0
     }
@@ -559,10 +546,15 @@ export default class EmoChat {
             .setOrigin(0.5)
             .setScale(0.5)
             .setAlpha(0.5)
+        this.feed.messagePlane.defaults = {
+            y: this.feed.messagePlane.y
+        }
 
         this.feed.container.add([this.feed.bg, this.feed.frame, this.feed.messageLineBG, this.feed.messagePlane])
     }
-
+    commitMessage() {
+        // отправляем в чат
+    }
     // ещё не задействовал
     updateFeed(line) {
         if (!this.feedRows) {
@@ -870,7 +862,7 @@ export default class EmoChat {
 
         // чужие модули
         // this.button.icon.setFrame(1) // нужно ставить последнюю иконку, или предикцию...
-        this.planeReflex(0, () => this.feed.messagePlane.alpha = 0.5)
+        this.reflexPlane(0, () => this.feed.messagePlane.alpha = 0.5)
 
     }
     // Маппинг “категория+индекс → frame”
@@ -879,7 +871,7 @@ export default class EmoChat {
         if (!cat) cat = 0; // дефолт
 
         const iconName = cat.icons[iconIndex];
-        console.log('getFrameFor', catIndex, iconIndex, iconName ); // this.iconSet[iconName]
+        // console.log('getFrameFor', catIndex, iconIndex, iconName ); // this.iconSet[iconName]
         return iconName ?? 1;
     }
     // иконка на кнопку
@@ -1012,6 +1004,17 @@ export default class EmoChat {
     // схемы
     createGestureSchemes() {
         this.gestureSchemes = [
+            {
+                name: "-1",
+                handlers: {
+                    tap: "upSelector", // sendMessage 
+                    long: "toggleMenu", // toggleMenu
+                    up: "sendMessage", // sendEmoji
+                    down: "downSelector", // undoEmoji
+                    right: "nextIcon", // nextIcon
+                    left: "leftSelector" // prevIcon 
+                }
+            },
             {
                 name: "0",
                 handlers: {
