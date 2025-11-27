@@ -858,6 +858,7 @@ export default class EmoChat {
     }
     sendMessage() {
         // console.log('send message', this.message.line);
+        if (this.message.line.length === 0) return
         this.commitMessage(this.message.line);
         setTimeout(() => {
             // this.commitMessage();
@@ -1011,17 +1012,28 @@ export default class EmoChat {
     // схемы
     createGestureSchemes() {
         this.gestureSchemes = [
-            // {
-            //     name: "1",
-            //     handlers: {
-            //         tap: "toggleMenu",
-            //         double: "sendMessage",
-            //         up: "sendEmoji",
-            //         down: "undoEmoji",
-            //         right: "nextIcon",
-            //         left: "prevIcon"
-            //     }
-            // },
+            {
+                name: "0",
+                handlers: {
+                    tap: "sendMessage", // sendMessage 
+                    long: "toggleMenu", // toggleMenu
+                    up: "upSelector", // sendEmoji
+                    down: "downSelector", // undoEmoji
+                    right: "nextIcon", // nextIcon
+                    left: "leftSelector" // prevIcon 
+                }
+            },
+            {
+                name: "1",
+                handlers: {
+                    tap: "sendMessage", // sendMessage 
+                    // long: "toggleMenu", // toggleMenu
+                    up: "upSelector", // sendEmoji
+                    down: "downSelector", // undoEmoji
+                    right: "nextIcon", // nextIcon
+                    left: "leftSelector" // prevIcon 
+                }
+            },
            {
                 name: "2",
                 handlers: {
