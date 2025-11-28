@@ -193,17 +193,17 @@ export default class EmoChat {
 
         // var2
         this.menu.catShadow = this.scene.add
-                    .image(this.config.BUTTON_X - 60, this.config.BUTTON_Y, 'emo', 1)
-                    .setOrigin(0.5)
-                    .setScale(0.7) // 0.9
-                    .setAlpha(0) // .setAlpha(1 - i * 0.15)
-                    .setDepth(1000)
-            this.menu.catShadow.defaults = {
-                alpha: this.menu.catShadow.alpha,
-                scale: this.menu.catShadow.scale,
-                x: this.menu.catShadow.x,
-                y: this.menu.catShadow.y
-            }
+            .image(this.config.BUTTON_X - 60, this.config.BUTTON_Y, 'emo', 1)
+            .setOrigin(0.5)
+            .setScale(0.7) // 0.9
+            .setAlpha(0) // .setAlpha(1 - i * 0.15)
+            .setDepth(1000)
+        this.menu.catShadow.defaults = {
+            alpha: this.menu.catShadow.alpha,
+            scale: this.menu.catShadow.scale,
+            x: this.menu.catShadow.x,
+            y: this.menu.catShadow.y
+        }
         // this.menu.container.add(this.menu.lines) // это не сработает
 
         for (let index = 0; index < this.categories.length; index++) {
@@ -225,11 +225,11 @@ export default class EmoChat {
             this.menu.container.add(this.menu.rings[index])
 
             this.menu.catShadows[index] = this.scene.add
-                    .image(x + this.config.MENU_WIDTH, y, 'emo', 1)
-                    .setOrigin(0.5)
-                    .setScale(0.7) // 0.9
-                    .setAlpha(0) // .setAlpha(1 - i * 0.15)
-                    .setDepth(1000)
+                .image(x + this.config.MENU_WIDTH, y, 'emo', 1)
+                .setOrigin(0.5)
+                .setScale(0.7) // 0.9
+                .setAlpha(0) // .setAlpha(1 - i * 0.15)
+                .setDepth(1000)
             this.menu.catShadows[index].defaults = {
                 alpha: this.menu.catShadows[index].alpha,
                 scale: this.menu.catShadows[index].scale,
@@ -249,7 +249,7 @@ export default class EmoChat {
             for (let i = 0; i < this.config.ICONS_PER_CAT; i++) {
                 const x = this.config.MENU_WIDTH - 60 * i
                 const y = 0
-               
+
                 const iconNumber = Math.round((Math.random() * 100))
                 this.categories[index].icons.push(iconNumber)
                 // console.log(iconNumber)
@@ -473,8 +473,8 @@ export default class EmoChat {
 
         // this.updatePredictLine() // тоже не очень
     }
-    
-    
+
+
     clearMessageLine() {
         this.message.line.length = 0
     }
@@ -551,11 +551,11 @@ export default class EmoChat {
             // if (!icon) {
             //     // это НОВАЯ иконка → создаём у кнопки и анимируем "прилёт"
             const icon = this.scene.add
-                    .image(targetX, targetY, 'emo', frame)
-                    .setOrigin(0.5)
-                    .setScale(0.55)
-                    .setAlpha(0.3)
-                    .setDepth(1000)
+                .image(targetX, targetY, 'emo', frame)
+                .setOrigin(0.5)
+                .setScale(0.55)
+                .setAlpha(0.3)
+                .setDepth(1000)
 
             //     sprites[index] = icon;
             //     this.message.lineContainer.add(icon)
@@ -593,7 +593,7 @@ export default class EmoChat {
             ease: 'Back.Out',
             onComplete: () => {
                 if (callback) callback()
-                this.feed.messagePlane.y = this.feed.messagePlane.defaults.y    
+                this.feed.messagePlane.y = this.feed.messagePlane.defaults.y
             }
         });
     }
@@ -613,6 +613,12 @@ export default class EmoChat {
         this.feed.bg.fillStyle(0x000000, 0.5); // 0x212838
         this.feed.bg.fillRoundedRect(this.config.FEED_X, this.config.FEED_Y, this.config.FEED_WIDTH, this.config.FEED_HEIGHT, 8);
 
+        // 👉 контейнер для строк фида (плашек)
+        this.feed.feedContainer = this.scene.add.container(
+            this.config.FEED_X + 8,
+            this.config.FEED_Y + 8
+        );
+
         // подложка нашего набора
         this.feed.messageLineBG = this.scene.add.graphics();
         this.feed.messageLineBG.fillStyle(0x212838, 0.9);
@@ -629,12 +635,20 @@ export default class EmoChat {
             y: this.feed.messagePlane.y
         }
 
-        this.feed.container.add([this.feed.bg, this.feed.frame, this.feed.messageLineBG, this.feed.messagePlane])
+        this.feed.container.add([this.feed.bg, this.feed.frame, this.feed.feedContainer, this.feed.messageLineBG, this.feed.messagePlane])
     }
-    commitMessage() {
-        // отправляем в чат
+    commitMessage(lineFrames = this.message.line) {
+        if (!lineFrames || !lineFrames.length) return;
+
+        // TODO: здесь можно позже сделать маппинг frame → реальный emoji
+        // сейчас просто покажем номера кадров
+        const payload = lineFrames.join(' ');       // "12 34 56"
+        // или, если хочешь формат типа [12,34,56]:
+        // const payload = `[${lineFrames.join(', ')}]`;
+
+        this.addFeedRow(payload);
     }
-    // ещё не задействовал
+
     updateFeed(line) {
         if (!this.feedRows) {
             this.feedRows = [];
@@ -653,26 +667,46 @@ export default class EmoChat {
         const maxRows = 5;
         const scene = this.scene;
 
+        if (!this.feed || !this.feed.feedContainer) return;
+        const container = this.feed.feedContainer;
+
         // создаём плашку
         const row = this.makeFeedRow(scene, text);
-        row.y = this.feedContainer.height;  // появляется снизу
-        this.feedContainer.add(row);
+
+        // вертикальная позиция: каждая следующая строка чуть ниже
+        const ROW_GAP = 26; // можно подогнать
+        const index = container.list.length;
+        row.y = index * ROW_GAP;
+
+        container.add(row);
 
         // плавное появление
         scene.tweens.add({
             targets: row,
-            y: row.y - 8,
+            y: row.y - 4,   // лёгкий подъём
             alpha: 1,
             duration: 150,
             ease: 'Quad.easeOut'
         });
 
-        // если строк больше лимита — удаляем старую
-        if (this.feedContainer.length > maxRows) {
-            const old = this.feedContainer.getAt(0);
+        // если строк больше лимита — удаляем старую (верхнюю)
+        if (container.list.length > maxRows) {
+            const old = container.list[0];
             old.destroy();
+            container.remove(old, true);
+
+            // пересобираем позиции оставшихся строк
+            container.list.forEach((child, i) => {
+                scene.tweens.add({
+                    targets: child,
+                    y: i * ROW_GAP,
+                    duration: 100,
+                    ease: 'Quad.easeOut'
+                });
+            });
         }
     }
+
     makeFeedRow(scene, label) {
         const PAD_X = 10, PAD_Y = 4, RADIUS = 8;
 
@@ -913,11 +947,11 @@ export default class EmoChat {
         if (!this.menu.container.visible) {
             this.openMenu()
         } else {
-            
+            this.prevIcon()
         }
     }
     tapSelector() {
-         if (this.message.line.length > 0) {
+        if (this.message.line.length > 0) {
             this.sendMessage();
         } else {
             // отправить сразу в фид эмо
@@ -967,6 +1001,7 @@ export default class EmoChat {
     }
     closeMenu() {
         this.menu.container.visible = 0
+        this.helper.container.visible = 0
         this.openVeer(this.menu.container.visible)
     }
     toggleHelp() {
@@ -1155,7 +1190,7 @@ export default class EmoChat {
                     long: "toggleMenu", // toggleMenu
                     up: "sendMessage", // sendEmoji
                     down: "downSelector", // undoEmoji
-                    right: "nextIcon", // nextIcon
+                    right: "rightSelector", // nextIcon
                     left: "leftSelector" // prevIcon 
                 }
             },
@@ -1181,7 +1216,7 @@ export default class EmoChat {
                     left: "leftSelector" // prevIcon 
                 }
             },
-           {
+            {
                 name: "2",
                 handlers: {
                     tap: "sendMessage", // sendMessage 
