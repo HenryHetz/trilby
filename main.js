@@ -38,7 +38,7 @@ class ArenaScene extends Phaser.Scene {
     }
     preload() {
         // sprites
-        this.load.image("bg", "assets/sprites/bg_59.png");
+        this.load.image("bg", "assets/sprites/bg_61.png");
         this.load.image("button", "assets/sprites/button_red.png");
         // this.load.image("emoji_0", "assets/sprites/emoji_0.png");
         // this.load.image("emoji_1", "assets/sprites/emoji_1.png");
@@ -411,7 +411,7 @@ class ArenaScene extends Phaser.Scene {
 
         // X counter
         this.xCounter = this.add
-            .text(320, 360, '', {
+            .text(320, 366, '', {
                 // font: "44px Helvetica",
                 fontFamily: 'CyberFont',
                 fontSize: '40px',
@@ -1752,7 +1752,7 @@ class ArenaScene extends Phaser.Scene {
     }
     drawWinChart(win) {
         const g = this.winChart;
-        this.winChartArea = { x: 200, y: 165, w: 240, h: 150 }; // x: 190, y: 100, w: 250, h: 180
+        this.winChartArea = { x: 205, y: 175, w: 230, h: 150 }; // x: 190, y: 100, w: 250, h: 180
         const { x, y, w, h } = this.winChartArea;
         const data = this.winHistory;
         g.clear();

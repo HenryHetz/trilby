@@ -26,7 +26,7 @@ export default class EmoChat {
             TAP_MAX_DISTANCE: 3,
             TAP_MAX_DURATION: 250,
             // TAP_MIN_DURATION: 5,
-            TAP_LONG_DURATION: 200,
+            TAP_LONG_DURATION: 300,
             SWIPE_MIN_DISTANCE: 50,
             SWIPE_MAX_TIME: 1000,
             DRAG_HOLD_TIME: 400,
@@ -747,6 +747,8 @@ export default class EmoChat {
             startTime = scene.time.now;
             // console.log('pointerdown', startTime)
         });
+
+        
 
         scene.input.on("pointerup", (p) => {
             if (!startTime) return;
