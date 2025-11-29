@@ -38,7 +38,7 @@ class ArenaScene extends Phaser.Scene {
     }
     preload() {
         // sprites
-        this.load.image("bg", "assets/sprites/bg_61.png");
+        this.load.image("bg", "assets/sprites/bg_66.png");
         this.load.image("button", "assets/sprites/button_red.png");
         // this.load.image("emoji_0", "assets/sprites/emoji_0.png");
         // this.load.image("emoji_1", "assets/sprites/emoji_1.png");
@@ -152,7 +152,7 @@ class ArenaScene extends Phaser.Scene {
         this.standartColors = {
             white: 0xFBFAF8, // 0xffffff
             red: 0xE60000, // 0xff0000
-            blue: 0x05edff, // 6CFFFF
+            blue: 0x05edff, // 6CFFFF // #3DB6FF
             yellow: 0xfcd912, // orange: 0xFF9B0F yellow: 0xfcd912
             black: 0x000000,
             gray: 0xD9D9D9,
@@ -306,17 +306,22 @@ class ArenaScene extends Phaser.Scene {
         console.log("P(X>100) ≈", survivalProb(winsArray, 100)); // ~0.01
     }
     createCounters() {
+        const smallFont = "20px Helvetica" // 22
+        const y_1 = 32
+        const y_2 = 110
+        const gapY = 26
+
         // MODE
         this.add
-            .text(20, 30, "MODE ->", {
-                font: "22px Helvetica",
+            .text(20, y_1, "MODE ->", {
+                font: smallFont,
                 fill: this.textColors.white, // "#fff"
             }).setAlpha(1)
             .setOrigin(0, 0.5)
             .setDepth(20)
 
         this.modeText = this.add
-            .text(20, 60, 'SURVIVAL', {
+            .text(20, y_1 + gapY, 'SURVIVAL', {
                 font: "16px CyberFont",
                 fill: this.textColors.red,
             }).setAlpha(1)
@@ -325,15 +330,15 @@ class ArenaScene extends Phaser.Scene {
 
         // DEP
         this.add
-            .text(505, 30, "DEP ->", {
-                font: "24px Helvetica",
+            .text(505, y_1, "DEP ->", {
+                font: smallFont,
                 fill: this.textColors.white,
             }).setAlpha(1)
             .setOrigin(0, 0.5)
             .setDepth(20)
 
         this.depoCounter = this.add
-            .text(505, 60, this.deposit.toFixed(2), {
+            .text(505, y_1 + gapY, this.deposit.toFixed(2), {
                 font: "16px CyberFont",
                 fill: this.textColors.red,
             }).setAlpha(1)
@@ -341,18 +346,18 @@ class ArenaScene extends Phaser.Scene {
             .setDepth(20)
         // .setText(this.deposit)
 
-        const topY = 110
+        
         // TIME
         this.add
-            .text(220, topY, 'TIME', {
-                font: "22px Helvetica",
+            .text(220, y_2, 'TIME', {
+                font: smallFont,
                 fill: this.textColors.white,
             }).setAlpha(1)
             .setOrigin(0.5, 0.5)
             .setDepth(20)
 
         this.timeCounter = this.add
-            .text(220, topY + 30, 0, {
+            .text(220, y_2 + gapY, 0, {
                 font: "16px CyberFont",
                 fill: this.textColors.gray,
             }).setAlpha(1)
@@ -369,15 +374,15 @@ class ArenaScene extends Phaser.Scene {
 
         // BASE
         this.add
-            .text(310, topY, 'BASE', {
-                font: "22px Helvetica",
+            .text(310, y_2, 'BASE', {
+                font: smallFont,
                 fill: this.textColors.white,
             }).setAlpha(1)
             .setOrigin(0.5, 0.5)
             .setDepth(20)
 
         this.baseCounter = this.add
-            .text(310, topY + 30, this.wallTouchX, {
+            .text(310, y_2 + gapY, this.wallTouchX, {
                 font: "16px CyberFont",
                 fill: this.textColors.gray,
             }).setAlpha(1)
@@ -386,15 +391,15 @@ class ArenaScene extends Phaser.Scene {
 
         // STAKE
         this.add
-            .text(405, topY, 'STAKE', {
-                font: "22px Helvetica",
+            .text(405, y_2, 'STAKE', {
+                font: smallFont,
                 fill: this.textColors.white,
             }).setAlpha(1)
             .setOrigin(0.5, 0.5)
             .setDepth(20)
 
         this.stakeCounter = this.add
-            .text(405, topY + 30, this.bet.toFixed(2), {
+            .text(405, y_2 + gapY, this.bet.toFixed(2), {
                 font: "16px CyberFont",
                 fill: this.textColors.gray,
             }).setAlpha(1)
@@ -411,7 +416,7 @@ class ArenaScene extends Phaser.Scene {
 
         // X counter
         this.xCounter = this.add
-            .text(320, 366, '', {
+            .text(320, 370, '', {
                 // font: "44px Helvetica",
                 fontFamily: 'CyberFont',
                 fontSize: '40px',
