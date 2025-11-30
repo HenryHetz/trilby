@@ -748,7 +748,7 @@ export default class EmoChat {
             // console.log('pointerdown', startTime)
         });
 
-        
+
 
         scene.input.on("pointerup", (p) => {
             if (!startTime) return;
@@ -895,7 +895,7 @@ export default class EmoChat {
                 this.scene.tweens.add({
                     targets: icon,
                     // x: ,
-                    y: icon.y + 30,
+                    // y: icon.y + 30,
                     alpha: 0,
                     delay: duration,
                     duration: duration * 2,
