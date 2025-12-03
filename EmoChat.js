@@ -2,7 +2,7 @@ export default class EmoChat {
     constructor(scene, x, y) {
         // console.log(scene)
         this.scene = scene
-        this.config = this.initConstants({ x: 560, y: 930 }, { x: 480, y: 130 });
+        this.config = this.initConstants({ x: 560, y: 930 }, { x: 486, y: 124 });
         // dev
         this.frameAlpha = 0
         this.devVisible = 0
@@ -35,6 +35,7 @@ export default class EmoChat {
             FEED_Y: feed.y,
             FEED_WIDTH: 150,
             FEED_HEIGHT: 360,
+            FEED_LENGTH: 3,
             MENU_WIDTH: 540,
             MENU_HEIGHT: 300,
             MESSAGE_LENGTH: 3,
@@ -609,15 +610,46 @@ export default class EmoChat {
             .strokeRect(this.config.FEED_X, this.config.FEED_Y, this.config.FEED_WIDTH, this.config.FEED_HEIGHT);
 
         // подложка
+        const indent = 4
+
         this.feed.bg = this.scene.add.graphics();
         this.feed.bg.fillStyle(0x000000, 0.5); // 0x212838
-        this.feed.bg.fillRoundedRect(this.config.FEED_X, this.config.FEED_Y, this.config.FEED_WIDTH, this.config.FEED_HEIGHT, 8);
+        this.feed.bg.fillRoundedRect(this.config.FEED_X, this.config.FEED_Y, this.config.FEED_WIDTH, this.config.FEED_HEIGHT, indent * 3);
 
         // 👉 контейнер для строк фида (плашек)
-        this.feed.feedContainer = this.scene.add.container(
-            this.config.FEED_X + 8,
-            this.config.FEED_Y + 8
-        );
+        
+        this.feed.messageCont = this.scene.add.container(
+            this.config.FEED_X + indent,
+            this.config.FEED_Y + indent
+        ).setDepth(1000)
+        this.feed.messageArray = []
+
+        const messageHeight = 86
+        const messageWidth = this.config.FEED_WIDTH - indent * 2
+        const radius = indent * 2
+        const gapY = indent * 2
+        // плашки в фиде
+        for (let index = 0; index <= this.config.FEED_LENGTH; index++) {
+            // cont
+            this.feed.messageArray[index] = this.scene.add.container(
+                0 + indent,
+                0 + indent
+            ).setDepth(1000)
+
+            const wrapper = this.scene.add.graphics()
+            .fillStyle(0x212838, 0.9)
+            .fillRoundedRect(0, 0 + messageHeight * index + gapY * index, messageWidth, messageHeight, radius)
+            
+            const name = this.scene.add.text(0, 0, 'NAME_' + index, {
+            fontFamily: 'CyberFont',
+            fontSize: '14px',
+            // color: scene.textColors.white,
+            fill: this.scene.textColors.white,
+        })
+            this.feed.messageArray[index].add([wrapper, name])
+
+            this.feed.messageCont.add(this.feed.messageArray[index])
+        }
 
         // подложка нашего набора
         this.feed.messageLineBG = this.scene.add.graphics();
@@ -635,7 +667,7 @@ export default class EmoChat {
             y: this.feed.messagePlane.y
         }
 
-        this.feed.container.add([this.feed.bg, this.feed.frame, this.feed.feedContainer, this.feed.messageLineBG, this.feed.messagePlane])
+        this.feed.container.add([this.feed.bg, this.feed.frame, this.feed.messageCont, this.feed.messageLineBG, this.feed.messagePlane])
     }
     commitMessage(lineFrames = this.message.line) {
         if (!lineFrames || !lineFrames.length) return;
@@ -667,8 +699,8 @@ export default class EmoChat {
         const maxRows = 5;
         const scene = this.scene;
 
-        if (!this.feed || !this.feed.feedContainer) return;
-        const container = this.feed.feedContainer;
+        if (!this.feed || !this.feed.messageCont) return;
+        const container = this.feed.messageCont;
 
         // создаём плашку
         const row = this.makeFeedRow(scene, text);
@@ -706,7 +738,6 @@ export default class EmoChat {
             });
         }
     }
-
     makeFeedRow(scene, label) {
         const PAD_X = 10, PAD_Y = 4, RADIUS = 8;
 
@@ -728,6 +759,9 @@ export default class EmoChat {
         row.setAlpha(0);
         return row;
     }
+
+
+
 
     // жесты
     attachGestures() {

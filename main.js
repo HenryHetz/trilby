@@ -157,12 +157,13 @@ class ArenaScene extends Phaser.Scene {
             black: 0x000000,
             gray: 0xD9D9D9,
             wrapper: 0x212838,
+            dark_red: 0x920000
         };
 
         // text
         this.textColors = {
             white: '#FBFAF8',
-            red: '#c60000', // '#E60000'
+            red: '#c60000', // '#E60000' '#920000ff'
             gray: '#bcbcbcff', // '#cccccc'
             yellow: '#fcd912',
             blue: '#05edff',
@@ -352,7 +353,7 @@ class ArenaScene extends Phaser.Scene {
             .text(220, y_2, 'TIME', {
                 font: smallFont,
                 fill: this.textColors.white,
-            }).setAlpha(1)
+            }).setAlpha(0.5)
             .setOrigin(0.5, 0.5)
             .setDepth(20)
 
@@ -360,7 +361,7 @@ class ArenaScene extends Phaser.Scene {
             .text(220, y_2 + gapY, 0, {
                 font: "16px CyberFont",
                 fill: this.textColors.gray,
-            }).setAlpha(1)
+            }).setAlpha(0.5)
             .setOrigin(0.5, 0.5)
             .setDepth(20)
 
@@ -372,26 +373,26 @@ class ArenaScene extends Phaser.Scene {
         //     }).setAlpha(0)
         //     .setOrigin(0, 0.5);
 
-        // BASE
+        // BASE x: 310
         this.add
-            .text(310, y_2, 'BASE', {
+            .text(420, y_2, 'BASE', {
                 font: smallFont,
                 fill: this.textColors.white,
-            }).setAlpha(1)
+            }).setAlpha(0.5)
             .setOrigin(0.5, 0.5)
             .setDepth(20)
 
         this.baseCounter = this.add
-            .text(310, y_2 + gapY, this.wallTouchX, {
+            .text(420, y_2 + gapY, this.wallTouchX, {
                 font: "16px CyberFont",
                 fill: this.textColors.gray,
-            }).setAlpha(1)
+            }).setAlpha(0.5)
             .setOrigin(0.5, 0.5)
             .setDepth(20)
 
-        // STAKE
+        // STAKE x: 405
         this.add
-            .text(405, y_2, 'STAKE', {
+            .text(320, y_2, 'STAKE', {
                 font: smallFont,
                 fill: this.textColors.white,
             }).setAlpha(1)
@@ -399,7 +400,7 @@ class ArenaScene extends Phaser.Scene {
             .setDepth(20)
 
         this.stakeCounter = this.add
-            .text(405, y_2 + gapY, this.bet.toFixed(2), {
+            .text(320, y_2 + gapY, this.bet.toFixed(2), {
                 font: "16px CyberFont",
                 fill: this.textColors.gray,
             }).setAlpha(1)
@@ -2184,7 +2185,7 @@ const f2 = v => Number(v).toFixed(2);
 
 function makeRow(scene, rec) {
 
-    const ROW_H = 30;       // высота плашки
+    // const ROW_H = 40;       // высота плашки
     const PAD_X = 10;       // внутренние отступы плашки
     const PAD_Y = 4; 
     const RADIUS = 8;
@@ -2196,9 +2197,9 @@ function makeRow(scene, rec) {
     };
     const FONT_PCT = {
         fontFamily: 'CyberFont',
-        fontSize: '20px',
+        fontSize: '18px',
         // color: scene.textColors.white,
-        fill: scene.textColors.gray,
+        fill: scene.textColors.white,
         stroke: scene.textColors.black,
         strokeThickness: 6,
     };
@@ -2220,7 +2221,7 @@ function makeRow(scene, rec) {
     const g = scene.add.graphics();
     // const color = rec.exitX != null ? (MODE_COLORS[rec.mode] ?? MODE_COLORS.red) : MODE_COLORS.red;
     // const color = MODE_COLORS[rec.mode]? MODE_COLORS[rec.mode] : MODE_COLORS.red
-    const color = scene.standartColors.wrapper
+    const color = rec.exitX? scene.standartColors.black : scene.standartColors.wrapper // wrapper
     g.fillStyle(color, 1);
     g.fillRoundedRect(0, 0, badgeW, badgeH, RADIUS);
 
