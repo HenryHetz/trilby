@@ -38,7 +38,7 @@ class ArenaScene extends Phaser.Scene {
     }
     preload() {
         // sprites
-        this.load.image("bg", "assets/sprites/bg_67.png");
+        this.load.image("bg", "assets/sprites/bg_68.png");
         this.load.image("button", "assets/sprites/button_red.png");
         // this.load.image("emoji_0", "assets/sprites/emoji_0.png");
         // this.load.image("emoji_1", "assets/sprites/emoji_1.png");
