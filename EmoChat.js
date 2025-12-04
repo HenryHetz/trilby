@@ -1156,7 +1156,7 @@ export default class EmoChat {
         // console.log('updateButtonIcon', this.state.currentEmo);
         // если строка заполнена – показываем самолётик
         if (this.message && this.message.line.length === this.config.MESSAGE_LENGTH) {
-            this.button.icon.setFrame(119); // самолётик
+            this.button.icon.setFrame(127); // самолётик
         } else {
             this.button.icon.setFrame(this.state.currentEmo);
         }
