@@ -2111,7 +2111,7 @@ class ArenaScene extends Phaser.Scene {
 
     // ===== добавление записи =====
     addLastRow(exitX, crashX, mode) {
-        const maxRow = 7
+        const maxRow = 10
         const rec = { exitX: exitX == null ? null : +exitX, crashX: +crashX, mode };
         this.lastLog.push(rec);
         if (this.lastLog.length > maxRow) this.lastLog.shift();
@@ -2142,6 +2142,8 @@ class ArenaScene extends Phaser.Scene {
             // const gap = (prevExitX != null) ? 50 : 10;
             const gap = (r.exitX != null) ? 18 : 0;
             y += 36 + gap; // 30 + gap
+            // console.log('log y', y)
+            if (y > 359) break  
         }
 
         // снизу вверх
@@ -2198,7 +2200,7 @@ function makeRow(scene, rec) {
         fontFamily: 'CyberFont',
         fontSize: '18px',
         // color: scene.textColors.white,
-        fill: scene.textColors.white,
+        fill: scene.textColors.gray,
         stroke: scene.textColors.black,
         strokeThickness: 6,
     };
@@ -2222,7 +2224,7 @@ function makeRow(scene, rec) {
     // const color = MODE_COLORS[rec.mode]? MODE_COLORS[rec.mode] : MODE_COLORS.red
     const color = rec.exitX? scene.standartColors.wrapper : scene.standartColors.red // wrapper
     // const color = scene.standartColors.wrapper
-    g.fillStyle(color, 1);
+    g.fillStyle(color, 0.9);
     g.fillRoundedRect(0, 0, badgeW, badgeH, RADIUS);
 
     const badge = scene.add.container(0, 0, [g, txt]);

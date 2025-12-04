@@ -613,7 +613,7 @@ export default class EmoChat {
         const indent = 4
 
         this.feed.bg = this.scene.add.graphics();
-        this.feed.bg.fillStyle(0x000000, 0.5); // 0x212838
+        this.feed.bg.fillStyle(0x000000, 0.0); // 0x212838
         this.feed.bg.fillRoundedRect(this.config.FEED_X, this.config.FEED_Y, this.config.FEED_WIDTH, this.config.FEED_HEIGHT, indent * 3);
 
         // 👉 контейнер для строк фида (плашек)
@@ -647,7 +647,7 @@ export default class EmoChat {
                 fill: this.scene.textColors.white,
             })
 
-            this.feed.messageArray[index].add([wrapper, name])
+            // this.feed.messageArray[index].add([wrapper, name])
 
             this.feed.messageCont.add(this.feed.messageArray[index])
         }
