@@ -366,9 +366,9 @@ export default class EmoChat {
         // this.helper.bg.fillRoundedRect(x, y, width, height, 24);
 
         // 
-        this.helper.bg = this.scene.add.image(320, 640, 'emo_help')
+        this.helper.bg = this.scene.add.image(320, 600, 'emo_help')
             .setOrigin(0.5)
-            // .setScale(1.1)
+            .setScale(1.2)
 
         // нужен анимированный хелпер в стиле телеграм
         // Swipe UP to send\n
