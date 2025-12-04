@@ -1,8 +1,8 @@
 export default class EmoChat {
-    constructor(scene, x, y) {
+    constructor(scene) {
         // console.log(scene)
         this.scene = scene
-        this.config = this.initConstants({ x: 560, y: 930 }, { x: 486, y: 124 });
+        this.config = this.initConstants({ x: 560, y: 930 }, { x: 486, y: 120 });
         // dev
         this.frameAlpha = 0
         this.devVisible = 0
@@ -490,7 +490,7 @@ export default class EmoChat {
             return;
         }
 
-        const spacing = 36; // расстояние между иконками
+        const spacing = 72 * 0.52; // расстояние между иконками
         const targetY = this.feed.messageLineBG.startY;
 
         // центрируем по BG (можно подправить формулу)
@@ -535,7 +535,7 @@ export default class EmoChat {
     updatePredictLine() {
         const line = this.message.line;
         const sprites = this.message.sprites;
-        const spacing = 36; // расстояние между иконками
+        const spacing = 72 * 0.55; // расстояние между иконками
         const targetY = this.feed.messageLineBG.startY;
         // центрируем по BG (можно подправить формулу)
         const baseX = this.feed.messageLineBG.startX + 16;
@@ -613,7 +613,7 @@ export default class EmoChat {
         const indent = 4
 
         this.feed.bg = this.scene.add.graphics();
-        this.feed.bg.fillStyle(0x000000, 0); // 0x212838
+        this.feed.bg.fillStyle(0x000000, 0.5); // 0x212838
         this.feed.bg.fillRoundedRect(this.config.FEED_X, this.config.FEED_Y, this.config.FEED_WIDTH, this.config.FEED_HEIGHT, indent * 3);
 
         // 👉 контейнер для строк фида (плашек)
@@ -632,22 +632,22 @@ export default class EmoChat {
         for (let index = 0; index <= this.config.FEED_LENGTH; index++) {
             // cont
             this.feed.messageArray[index] = this.scene.add.container(
-                0 + indent,
-                0 + indent
+                0,
+                0 + messageHeight * index + gapY * index
             ).setDepth(1000)
 
             const wrapper = this.scene.add.graphics()
             .fillStyle(0x212838, 0.9)
-            .fillRoundedRect(0, 0 + messageHeight * index + gapY * index, messageWidth, messageHeight, radius)
+            .fillRoundedRect(0, 0, messageWidth, messageHeight, radius)
             
-            const name = this.scene.add.text(0, 0, 'NAME_' + index, {
+            const name = this.scene.add.text(0 + indent * 2, 0 + indent, 'NAME_' + (index + 1), {
                 fontFamily: 'CyberFont',
                 fontSize: '14px',
                 // color: scene.textColors.white,
                 fill: this.scene.textColors.white,
             })
 
-            // this.feed.messageArray[index].add([wrapper, name])
+            this.feed.messageArray[index].add([wrapper, name])
 
             this.feed.messageCont.add(this.feed.messageArray[index])
         }
