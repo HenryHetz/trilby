@@ -5,7 +5,7 @@ export default class EmoChat {
         this.config = this.initConstants({ x: 560, y: 930 }, { x: 486, y: 120 });
         // dev
         this.frameAlpha = 0
-        this.devVisible = 0
+        this.devVisible = 1
 
 
         this.init()
@@ -49,7 +49,7 @@ export default class EmoChat {
         this.initState()
         this.initCategories()
         // this.initIconSet()
-
+        this.initNames()
         // 
         this.lastTapTime = 0;
         this.tapTimeoutId = null;
@@ -112,9 +112,10 @@ export default class EmoChat {
         // const cat = this.categories.find(c => c.name === 'POSITIVE');
         // console.table(cat.icons);
     }
-    update() {
-        // console.log('update')
-        // this.timer.update() 
+    initNames() {
+        this.randomNames = [
+            'HENRY', 'LINDA', 'PAUL', 'JOKER', 'MOOD', 'OCTOPAN', 'SWEETY', 'ROCKET', 'ADAM_W', 'SAYMYNAME', 'JESSY', 'ANGEL', 'VICKY', 'SUNDAY',
+        ]
     }
     create() {
         this.createMenu()
@@ -248,26 +249,43 @@ export default class EmoChat {
 
 
             for (let i = 0; i < this.config.ICONS_PER_CAT; i++) {
-                const x = this.config.MENU_WIDTH - 60 * i
-                const y = 0
-
-                const iconNumber = Math.round((Math.random() * 100))
+                let x = this.config.MENU_WIDTH - 60 * i
+                let y = 0
+                let icon = null;
+                let iconNumber = Math.round((Math.random() * 100))
                 this.categories[index].icons.push(iconNumber)
                 // console.log(iconNumber)
 
-                const icon = this.scene.add
+                if (this.categories[index].name === 'WORDS') {
+                    x = this.config.MENU_WIDTH - 60 * i * 1.7
+                    iconNumber = 64 + i  
+                    icon = this.scene.add
+                    .image(x, y, 'words', iconNumber)
+                    .setOrigin(0.5)
+                    .setScale(0.7) // 0.9
+                    .setAlpha(1) // .setAlpha(1 - i * 0.15)
+                    icon.defaults = {
+                        alpha: icon.alpha,
+                        scale: icon.scale,
+                        startX: x + 30,
+                        startY: y - (index - 2) * 30
+                    }
+                } else {
+                    icon = this.scene.add
                     .image(x, y, 'emo', iconNumber)
                     .setOrigin(0.5)
                     .setScale(0.7) // 0.9
                     .setAlpha(1) // .setAlpha(1 - i * 0.15)
-                icon.defaults = {
-                    alpha: icon.alpha,
-                    scale: icon.scale,
-                    startX: x + 30,
-                    startY: y - (index - 2) * 30
+                    icon.defaults = {
+                        alpha: icon.alpha,
+                        scale: icon.scale,
+                        startX: x + 30,
+                        startY: y - (index - 2) * 30
+                    }
                 }
+
                 // if (i === 0)console.log('icon.defaults', icon.defaults)
-                this.menu.lines[index].add(icon)
+                if (icon) this.menu.lines[index].add(icon)
 
                 if (i === 0) {
                     this.menu.catShadows[index].setFrame(iconNumber)
@@ -343,9 +361,14 @@ export default class EmoChat {
             .strokeRect(x, y, width, height);
 
         // подложка
-        this.helper.bg = this.scene.add.graphics();
-        this.helper.bg.fillStyle(0x1c2534, 1); // '#1b1c23ff'
-        this.helper.bg.fillRoundedRect(x, y, width, height, 24);
+        // this.helper.bg = this.scene.add.graphics();
+        // this.helper.bg.fillStyle(0x1c2534, 1); // '#1b1c23ff'
+        // this.helper.bg.fillRoundedRect(x, y, width, height, 24);
+
+        // 
+        this.helper.bg = this.scene.add.image(320, 640, 'emo_help')
+            .setOrigin(0.5)
+            // .setScale(1.1)
 
         // нужен анимированный хелпер в стиле телеграм
         // Swipe UP to send\n
@@ -357,7 +380,7 @@ export default class EmoChat {
             font: "20px Helvetica",
             fill: '#f8e700',
         })
-            .setAlpha(1)
+            .setAlpha(0)
             .setOrigin(0.5, 0)
             .setAlign('center')
 
@@ -368,6 +391,7 @@ export default class EmoChat {
         })
             .setOrigin(0, 0)
             .setAlign('left')
+            .setAlpha(0)
 
         this.helper.container.add([this.helper.bg, this.helper.frame, this.helper.top, this.helper.text])
 

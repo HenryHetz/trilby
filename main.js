@@ -45,7 +45,7 @@ class ArenaScene extends Phaser.Scene {
         // this.load.image("emoji_2", "assets/sprites/emoji_2.png");
         this.load.image("icon_settings", "assets/sprites/icon_settings.png");
         this.load.image("emo_plane", "assets/sprites/emo_plane_2.png");
-       
+        this.load.image("emo_help", "assets/sprites/emo_help.png");
 
         // атласы
         // this.load.atlas(
@@ -54,8 +54,14 @@ class ArenaScene extends Phaser.Scene {
         //     'assets/sprites/sheets/smileys.json'
         // )
 
-        this.load.spritesheet('emo', 'assets/sprites/sheets/emo.png', {
+        this.load.spritesheet('emo', 'assets/sprites/sheets/emo_1.png', {
             frameWidth: 72,     // ширина одной иконки
+            frameHeight: 72,    // высота одной иконки
+            margin: 0,          // отступ от краёв спрайта (если есть)
+            spacing: 0          // промежуток между иконками (если есть)
+        });
+        this.load.spritesheet('words', 'assets/sprites/sheets/emo_1.png', {
+            frameWidth: 144,     // ширина одной иконки
             frameHeight: 72,    // высота одной иконки
             margin: 0,          // отступ от краёв спрайта (если есть)
             spacing: 0          // промежуток между иконками (если есть)
@@ -472,8 +478,8 @@ class ArenaScene extends Phaser.Scene {
 
         // last - live
         this.add
-            .text(20, 110, 'LAST', {
-                font: "14px CyberFont",
+            .text(20, 105, 'LAST', {
+                font: "16px CyberFont",
                 fill: this.textColors.red,
             })
             .setAlpha(1)
@@ -481,8 +487,8 @@ class ArenaScene extends Phaser.Scene {
             .setDepth(20)
 
         this.add
-            .text(505, 110, 'LIVE', {
-                font: "14px CyberFont",
+            .text(505, 105, 'LIVE', {
+                font: "16px CyberFont",
                 fill: this.textColors.red,
             })
             .setAlpha(1)
