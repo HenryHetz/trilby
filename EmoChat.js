@@ -36,8 +36,8 @@ export default class EmoChat {
             FEED_WIDTH: 150,
             FEED_HEIGHT: 360,
             FEED_LENGTH: 3,
-            MENU_WIDTH: 540,
-            MENU_HEIGHT: 300,
+            MENU_WIDTH: 640,
+            MENU_HEIGHT: 320,
             MESSAGE_LENGTH: 3,
             DOUBLE_TAP_DELAY: 250,
             ICONS_PER_CAT: 5
@@ -180,12 +180,31 @@ export default class EmoChat {
 
         // подложка
         this.menu.bg = this.scene.add.graphics();
-        this.menu.bg.fillStyle(0x000000, 0.9); // 0x212838
-        this.menu.bg.fillRoundedRect(this.config.BUTTON_X - this.config.MENU_WIDTH + 100, this.config.BUTTON_Y - this.config.MENU_HEIGHT / 2, this.config.MENU_WIDTH, this.config.MENU_HEIGHT, 30);
+        this.menu.bg.fillStyle(0x000000, 0.85); // 0x212838
+        // this.menu.bg.fillRoundedRect(this.config.BUTTON_X - this.config.MENU_WIDTH + 100, this.config.BUTTON_Y - this.config.MENU_HEIGHT / 2, this.config.MENU_WIDTH, this.config.MENU_HEIGHT, 30);
+        this.menu.bg.fillRoundedRect(0, this.config.BUTTON_Y - this.config.MENU_HEIGHT / 2, this.config.MENU_WIDTH, this.config.MENU_HEIGHT, 0);
         this.menu.bg.defaults = {
-            alpha: 0.8
+            alpha: this.menu.bg.alpha
         }
-        // this.menu.bg.setInteractive() // надо перехватить нажатия
+
+        this.menuArea = new Phaser.Geom.Rectangle(0, this.config.BUTTON_Y - this.config.MENU_HEIGHT / 2, this.config.MENU_WIDTH, this.config.MENU_HEIGHT)
+        // надо перехватить нажатия
+        this.menu.bg.setInteractive( 
+            this.menuArea,
+            Phaser.Geom.Rectangle.Contains
+        ).on('pointerdown', (pointer) => {
+            // console.log('menu bg', pointer.x, pointer.y)
+            
+            // const m = this.menu.bg.getWorldTransformMatrix();
+            // const bgX = m.tx;
+            // const bgY = m.ty;
+            // console.log("trans:", bgX, bgY, m);
+
+            // const localX = pointer.x - bgX;
+            // const localY = pointer.y - bgY;
+
+            // console.log("local:", localX, localY);
+        })
         this.menu.container.add([this.menu.bg, this.menu.frame])
 
         // веер / линии / категории
@@ -369,7 +388,7 @@ export default class EmoChat {
         // 
         this.helper.bg = this.scene.add.image(320, 600, 'emo_help')
             .setOrigin(0.5)
-            .setScale(1.2)
+            .setScale(1.0)
 
         // нужен анимированный хелпер в стиле телеграм
         // Swipe UP to send\n
@@ -490,7 +509,7 @@ export default class EmoChat {
     addEmoToLine(emoFrame) {
         // TODO: позже добавим проверки на длину/ширину и веса слов
 
-        if (emoFrame && this.message.line.length <= this.config.MESSAGE_LENGTH) this.message.line.push(emoFrame);
+        if (emoFrame && this.message.line.length < this.config.MESSAGE_LENGTH) this.message.line.push(emoFrame);
         if (!emoFrame && this.message.line.length > 0) this.message.line.pop()
 
         this.updateMessageLine();
@@ -793,19 +812,73 @@ export default class EmoChat {
     attachGestures() {
         const { scene } = this;
         const area = this.gestureArea;
+        const menu = this.menuArea
         const cfg = this.config;
 
         let startX = 0, startY = 0, startTime = 0;
 
         scene.input.on("pointerdown", (p) => {
+            
             // console.log('pointerdown')
             // console.log('area', area.x, area.y, area.radius);
             // console.log('pointer', p.x, p.y);
-            if (!Phaser.Geom.Circle.Contains(area, p.x, p.y)) return;
-            startX = p.x;
-            startY = p.y;
-            startTime = scene.time.now;
-            // console.log('pointerdown', startTime)
+            
+            if (Phaser.Geom.Circle.Contains(area, p.x, p.y)) {
+                startX = p.x;
+                startY = p.y;
+                startTime = scene.time.now;
+                // console.log('pointerdown button')
+                return;
+            }
+            if (Phaser.Geom.Rectangle.Contains(menu, p.x, p.y) && this.menu.container.visible) {
+                // if (p.event) { // не работает
+                //     p.event.stopPropagation();
+                //     p.event.preventDefault();
+                // }
+                // startX = p.x;
+                // startY = p.y;
+                // startTime = scene.time.now;
+                // console.log('pointerdown menu', this.menu.container.visible)
+                const local_x = p.x - menu.x;
+                const local_y = p.y - menu.y; 
+                // const delta_y = local_y - menu.height / 2
+                let line = Math.ceil((local_y - 10)/60)
+                // console.log('pointerdown menu', local_x, local_y, line)
+                if (line > 0 && line < 6) {
+                    const index = line - 1
+                    // console.log('menu line', this.categories[index].name)
+                    this.updateCat(index)
+                    // поищем иконку
+                    // console.log('line icons', this.categories[index].icons)
+                    // console.log('line cont', this.menu.lines[index].x, this.menu.lines[index].y)
+                    this.menu.lines[index].list.forEach(icon => {
+                        // console.log('icon.x', icon.x)
+                    })
+                    // console.log('this.button.x', this.button.icon.x)
+                    const delta_x = this.button.icon.x - local_x
+                    if (delta_x > 0) {
+                        const gapX = 30
+                        const shift = (index <= 2) ? gapX * index : gapX * (4 - index)
+                        // console.log('shift', shift)
+                        const gap = 30 * (index - 2)
+                        let cell = Math.ceil((delta_x - shift)/60)
+                        // console.log('delta_x', delta_x, cell)
+                        if (cell > 0) {
+                            const i = cell - 1
+                            if (this.menu.lines[index].list[i]) {
+                                const frame = this.getFrameFor(index, i);
+                                // console.log('setCurrentEmo', index, i, frame);
+                                this.state.update({
+                                    currentCat: index,
+                                    currentIconIndex: i,
+                                    currentEmo: frame
+                                });
+                                this.sendEmoji()
+                            }
+                        }
+                    }
+                }
+            }
         });
 
 
@@ -922,10 +995,9 @@ export default class EmoChat {
         const prevCat = this.state.currentCat;
         const nextCat = (prevCat + 1) % this.categories.length;
 
-        this.state.currentCat = nextCat;
+        // this.state.currentCat = nextCat;
         // визуально подсветили категорию
-        this.menu.rings.forEach((ring, index) => ring.visible = (index === nextCat));
-        this.menu.lines.forEach((line, index) => line.setAlpha(index === nextCat ? 1 : 0.5));
+        this.updateCat(nextCat)
 
         // ставим первую иконку новой категории
         this.setCurrentEmo(nextCat, 0);
@@ -933,6 +1005,11 @@ export default class EmoChat {
         // const icon = this.menu.lines[nextCat].list[this.state.currentIconIndex]
         // console.log('nextCategory', icon.x, this.menu.rings[nextCat].x)
         this.shadowShow(prevCat, nextCat)
+    }
+    updateCat(newCat) {
+        this.state.currentCat = newCat;
+        this.menu.rings.forEach((ring, index) => ring.visible = (index === newCat));
+        this.menu.lines.forEach((line, index) => line.setAlpha(index === newCat ? 1 : 0.5));
     }
     shadowShow(prev, next) {
         console.log('shadowShow', prev, next)
@@ -1099,12 +1176,13 @@ export default class EmoChat {
             this.updateMessageLine();
             this.updateButtonIcon();
             // this.timer.stop()
+            // this.scene.sfx.woosh.play();
         }, 100);
 
         // чужие модули
         // this.button.icon.setFrame(1) // нужно ставить последнюю иконку, или предикцию...
         this.reflexPlane(0, () => this.feed.messagePlane.alpha = 0.5)
-
+        this.scene.sfx.woosh.play();
     }
     // Маппинг “категория+индекс → frame”
     getFrameFor(catIndex, iconIndex) {

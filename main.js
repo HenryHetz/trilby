@@ -1,8 +1,6 @@
 // import { ButtonGraphics } from './ButtonGraphics.js'
 // import { GameControlPanel } from './GameControlPanel.js'
 
-// import { initEmojiGestures } from './emojiGestures.js';
-import { initEmojiWidget } from './emojiWidget.js';
 import { StateMonitor } from './StateMonitor.js';
 
 import EmoChat from './EmoChat.js';
@@ -38,14 +36,14 @@ class ArenaScene extends Phaser.Scene {
     }
     preload() {
         // sprites
-        this.load.image("bg", "assets/sprites/bg_68.png");
+        this.load.image("bg", "assets/sprites/bg_70.png");
         this.load.image("button", "assets/sprites/button_red.png");
         // this.load.image("emoji_0", "assets/sprites/emoji_0.png");
         // this.load.image("emoji_1", "assets/sprites/emoji_1.png");
         // this.load.image("emoji_2", "assets/sprites/emoji_2.png");
         this.load.image("icon_settings", "assets/sprites/icon_settings.png");
         this.load.image("emo_plane", "assets/sprites/emo_plane_2.png");
-        this.load.image("emo_help", "assets/sprites/emo_help.png");
+        this.load.image("emo_help", "assets/sprites/emo_help_2.png");
 
         // атласы
         // this.load.atlas(
@@ -83,7 +81,7 @@ class ArenaScene extends Phaser.Scene {
         this.load.audio("wall_touch", "assets/sfx/wall.mp3");
         this.load.audio("crash", "assets/sfx/crash_laser.mp3");
         this.load.audio("plink", "assets/sfx/plink.mp3");
-
+        this.load.audio("woosh", "assets/sfx/woosh.mp3");
     }
     init() {
         this.rtp = [];
@@ -951,6 +949,7 @@ class ArenaScene extends Phaser.Scene {
             crowd: this.sound.add("crowd", { volume: 1 }),
             ambient: this.sound.add("ambient", { volume: 0.05, loop: true }),
             cashout: this.sound.add("cashout", { volume: 0.5 }),
+            woosh: this.sound.add("woosh", { volume: 0.5 }),
         };
 
         // хранилище истории и слой для графика
@@ -2262,7 +2261,7 @@ function makeRow(scene, rec) {
         if (percent > 90) {
             FONT_PCT.fill = scene.textColors.black
             // FONT_PCT.strokeThickness = 4
-            FONT_PCT.stroke = scene.textColors.white
+            FONT_PCT.stroke = scene.textColors.gray
         }
         if (percent > 95) {
             FONT_PCT.fill = scene.textColors.yellow
