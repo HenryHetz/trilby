@@ -5,7 +5,7 @@ export default class EmoChat {
         this.config = this.initConstants({ x: 560, y: 930 }, { x: 486, y: 120 });
         // dev
         this.frameAlpha = 0
-        this.devVisible = 1
+        this.devVisible = 0
 
 
         this.init()
@@ -180,7 +180,7 @@ export default class EmoChat {
 
         // подложка
         this.menu.bg = this.scene.add.graphics();
-        this.menu.bg.fillStyle(0x000000, 0.5);
+        this.menu.bg.fillStyle(0x000000, 0.9); // 0x212838
         this.menu.bg.fillRoundedRect(this.config.BUTTON_X - this.config.MENU_WIDTH + 100, this.config.BUTTON_Y - this.config.MENU_HEIGHT / 2, this.config.MENU_WIDTH, this.config.MENU_HEIGHT, 30);
         this.menu.bg.defaults = {
             alpha: 0.8
@@ -216,7 +216,7 @@ export default class EmoChat {
             const y = this.config.BUTTON_Y + gapY * (index - 2)
 
             const wrapper = this.scene.add.graphics()
-                .fillStyle(0x212838, 1)
+                .fillStyle(0x212838, 0)
                 .fillRoundedRect(x + 275, y - 25, 290, 50, 25) // .fillRoundedRect(x + 95, y - 25, 410, 50, 25)
             this.menu.container.add(wrapper)
 
@@ -244,6 +244,7 @@ export default class EmoChat {
             this.menu.lines[index] = this.scene.add.container(x, y)
                 .setDepth()
                 .setAlpha(index === this.state.currentCat ? 1 : 0.5)
+                
             this.menu.container.add(this.menu.lines[index])
 
 
@@ -257,12 +258,12 @@ export default class EmoChat {
                 // console.log(iconNumber)
 
                 if (this.categories[index].name === 'WORDS') {
-                    x = this.config.MENU_WIDTH - 60 * i * 1.7
+                    x = this.config.MENU_WIDTH - 10 - 60 * i * 1.5
                     iconNumber = 64 + i  
                     icon = this.scene.add
                     .image(x, y, 'words', iconNumber)
                     .setOrigin(0.5)
-                    .setScale(0.7) // 0.9
+                    .setScale(0.6) // 0.9
                     .setAlpha(1) // .setAlpha(1 - i * 0.15)
                     icon.defaults = {
                         alpha: icon.alpha,

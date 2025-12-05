@@ -2146,10 +2146,10 @@ class ArenaScene extends Phaser.Scene {
             // const gap = (prevExitX != null && r.exitX != null) ? 16 : 8;
             // y += 30 + gap; // 30 + gap
             // const gap = (prevExitX != null) ? 50 : 10;
-            const gap = (r.exitX != null) ? 18 : 0;
-            y += 36 + gap; // 30 + gap
+            const gap = r.exitX? 20 : 0; // высота 50 или 30
+            y += 36 + gap; // 36 + gap
             // console.log('log y', y)
-            if (y > 359) break  
+            if (y > 340) break  
         }
 
         // снизу вверх
@@ -2195,12 +2195,17 @@ function makeRow(scene, rec) {
     // const ROW_H = 40;       // высота плашки
     const PAD_X = 10;       // внутренние отступы плашки
     const PAD_Y = 6; 
-    const RADIUS = 14;
+    const RADIUS = 15;
 
     const FONT_MAIN = {
         fontFamily: 'CyberFont',
         fontSize: '14px', // 14
-        fill: rec.exitX? scene.textColors.gray : scene.textColors.black
+        fill: scene.textColors.gray
+    };
+    const FONT_CRASH = {
+        fontFamily: 'CyberFont',
+        fontSize: '14px', // 14
+        fill: rec.exitX? scene.textColors.red : scene.textColors.black
     };
     const FONT_PCT = {
         fontFamily: 'CyberFont',
@@ -2220,10 +2225,16 @@ function makeRow(scene, rec) {
     const label = rec.exitX != null ? `${f2(rec.exitX)}\n${f2(rec.crashX)}` : `${f2(rec.crashX)}`;
 
     // const txt = scene.add.text(0, 0, label, { ...FONT_MAIN, color: scene.textColors.black }).setOrigin(0, 0.5);
-    const txt = scene.add.text(0, 0, label, { ...FONT_MAIN }).setOrigin(0, 0.5);
+    let txt_exit = null
+    if (rec.exitX) txt_exit = scene.add.text(0, 0, `${f2(rec.exitX)}`, { ...FONT_MAIN, color: scene.textColors.gray }).setOrigin(0, 0.5);
+    let txt_crash = scene.add.text(0, 0, `${f2(rec.crashX)}`, { ...FONT_CRASH }).setOrigin(0, 0.5);
+   
+    // const txt = scene.add.text(0, 0, label, { ...FONT_MAIN }).setOrigin(0, 0.5);
 
-    const badgeW = rec.exitX ? 120 : Math.ceil(txt.width + PAD_X * 2); // Math.ceil(txt.width + PAD_X * 2)
-    const badgeH = Math.ceil(txt.height + PAD_Y * 2); //  ROW_H
+    const badgeW = rec.exitX ? 120 : Math.ceil(txt_crash.width + PAD_X * 2); // Math.ceil(txt.width + PAD_X * 2)
+    // const badgeH = Math.ceil(txt.height + PAD_Y * 2); //  ROW_H
+    const badgeH = rec.exitX? 50 : 30
+    // console.log ('badgeH', badgeH)
 
     const g = scene.add.graphics();
     // const color = rec.exitX != null ? (MODE_COLORS[rec.mode] ?? MODE_COLORS.red) : MODE_COLORS.red;
@@ -2233,8 +2244,15 @@ function makeRow(scene, rec) {
     g.fillStyle(color, 0.9);
     g.fillRoundedRect(0, 0, badgeW, badgeH, RADIUS);
 
-    const badge = scene.add.container(0, 0, [g, txt]);
-    txt.setPosition(PAD_X, badgeH / 2);
+    const badge = scene.add.container(0, 0, [g, txt_crash]);
+    if (txt_exit) badge.add(txt_exit)
+
+    // txt.setPosition(PAD_X, badgeH / 2);
+    if (!txt_exit) txt_crash.setPosition(PAD_X, badgeH / 2)
+    else {
+        txt_exit.setPosition(PAD_X, badgeH / 2 - 11)
+        txt_crash.setPosition(PAD_X, badgeH / 2 + 11)
+    }
 
     // процент (если был выход) — справа-снизу от плашки
     let pct = null;
