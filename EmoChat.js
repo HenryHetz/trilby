@@ -40,7 +40,7 @@ export default class EmoChat {
             MENU_HEIGHT: 320,
             MESSAGE_LENGTH: 3,
             DOUBLE_TAP_DELAY: 250,
-            ICONS_PER_CAT: 5
+            ICONS_PER_CAT: 8
         };
     }
     init() {
@@ -99,6 +99,15 @@ export default class EmoChat {
             'POSITIVE_7': 3,
             'POSITIVE_8': 23,
         }
+
+        // поработать над этим
+        const EMO_DICTIONARY = {
+            "smile":   { type: 'emo', size: 1, frame: 0 },
+            "wtf":     { type: 'word',  size: 1, frame: 'WTF' },
+            "bruh":    { type: 'word',  size: 2, frame: 'BRUH' },
+            "clutch":  { type: 'word',  size: 2, frame: 'CLUTCH' },
+            "fuck":    { type: 'word',  size: 2, frame: 'F*CK' },
+        };
     }
     initCategories() {
         const categoryNames = ['POSITIVE', 'NEGATIVE', 'FUN', 'REACTION', 'WORDS'];
