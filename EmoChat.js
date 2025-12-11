@@ -249,7 +249,7 @@ export default class EmoChat {
             this.menu.container.add(wrapper)
 
             this.menu.rings[index] = this.scene.add.graphics()
-                .lineStyle(4, 0xE60000, 1)
+                .lineStyle(4, 0xE60000, 0)
                 .strokeCircle(x + this.config.MENU_WIDTH, y, 26)
                 .setVisible(index === this.state.currentCat ? 1 : 0)
             this.menu.container.add(this.menu.rings[index])
@@ -281,13 +281,15 @@ export default class EmoChat {
                 let x = this.config.MENU_WIDTH - 60 * i
                 let y = 0
                 let icon = null;
-                let iconNumber = Math.round((Math.random() * 100))
+                // let iconNumber = Math.round((Math.random() * 100))
+                let iconNumber = i + index * this.config.ICONS_PER_CAT
                 this.categories[index].icons.push(iconNumber)
-                // console.log(iconNumber)
+                console.log(iconNumber)
 
                 if (this.categories[index].name === 'WORDS') {
+                    if (i > 5) break
                     x = this.config.MENU_WIDTH - 10 - 60 * i * 1.5
-                    iconNumber = 64 + i  
+                    iconNumber = 16 + i  
                     icon = this.scene.add
                     .image(x, y, 'words', iconNumber)
                     .setOrigin(0.5)
@@ -301,7 +303,7 @@ export default class EmoChat {
                     }
                 } else {
                     icon = this.scene.add
-                    .image(x, y, 'emo', iconNumber)
+                    .image(x, y, 'emo', iconNumber) // нужно брать из списка
                     .setOrigin(0.5)
                     .setScale(0.7) // 0.9
                     .setAlpha(1) // .setAlpha(1 - i * 0.15)
@@ -351,7 +353,7 @@ export default class EmoChat {
 
         this.menuCloser.text = this.scene.add.text(x, y, 'CLOSE\nMENU', {
             font: '12px Helvetica',
-            fill: '#ffee00ff',
+            fill: this.scene.textColors.red,
         })
             .setAlpha(1)
             .setOrigin(0.5)
@@ -453,7 +455,7 @@ export default class EmoChat {
 
         this.helperCloser.text = this.scene.add.text(closerX, closerY, 'CLOSE\nHELP', {
             font: '12px Helvetica',
-            fill: '#ffee00ff',
+            fill: this.scene.textColors.red,
         })
             .setAlpha(1)
             .setOrigin(0.5)
@@ -515,11 +517,11 @@ export default class EmoChat {
 
         this.message.container.add([this.message.bg, this.message.frame])
     }
-    addEmoToLine(emoFrame) {
+    addEmoToLine() {
         // TODO: позже добавим проверки на длину/ширину и веса слов
 
-        if (emoFrame && this.message.line.length < this.config.MESSAGE_LENGTH) this.message.line.push(emoFrame);
-        if (!emoFrame && this.message.line.length > 0) this.message.line.pop()
+        if (this.message.line.length < this.config.MESSAGE_LENGTH) this.message.line.push(this.state.currentEmo);
+        // if (!emoFrame && this.message.line.length > 0) this.message.line.pop()
 
         this.updateMessageLine();
         this.updateButtonIcon();
@@ -527,7 +529,13 @@ export default class EmoChat {
 
         // this.updatePredictLine() // тоже не очень
     }
+    undoEmoFromLine() {
+        if (this.message.line.length > 0) this.message.line.pop()
 
+        this.updateMessageLine();
+        this.updateButtonIcon();
+        this.updatePlane()
+    }
 
     clearMessageLine() {
         this.message.line.length = 0
@@ -814,9 +822,13 @@ export default class EmoChat {
         return row;
     }
 
-
-
-
+    eraseLine() {
+        if (this.message.line.length > 0) {
+            this.clearMessageLine()
+            this.updateMessageLine()
+            this.setCurrentEmo(this.state.currentCat, this.state.currentIconIndex)
+        }
+    }
     // жесты
     attachGestures() {
         const { scene } = this;
@@ -876,7 +888,7 @@ export default class EmoChat {
                             const i = cell - 1
                             if (this.menu.lines[index].list[i]) {
                                 const frame = this.getFrameFor(index, i);
-                                // console.log('setCurrentEmo', index, i, frame);
+                                console.log('setCurrentEmo', index, i, frame);
                                 this.state.update({
                                     currentCat: index,
                                     currentIconIndex: i,
@@ -993,13 +1005,6 @@ export default class EmoChat {
         // this.menu.rings[cat].x = icon.x
         // иконка и кольцо в разных контейнерах
     }
-    eraseLine() {
-        if (this.message.line.length > 0) {
-            this.clearMessageLine()
-            this.updateMessageLine()
-            this.setCurrentEmo(this.state.currentCat, this.state.currentIconIndex)
-        }
-    }
     nextCategory() {
         const prevCat = this.state.currentCat;
         const nextCat = (prevCat + 1) % this.categories.length;
@@ -1103,7 +1108,7 @@ export default class EmoChat {
             this.sendMessage();
         } else {
             // отправить сразу в фид эмо
-            this.addEmoToLine(this.state.currentEmo)
+            this.addEmoToLine()
             this.sendMessage();
             // this.sendEmoji()
         }
@@ -1124,12 +1129,12 @@ export default class EmoChat {
     }
     undoEmoji() {
         // console.log('undoEmoji')
-        this.addEmoToLine(false)
+        this.undoEmoFromLine()
         this.setNextEmo();
     }
     sendEmoji() {
         // console.log('send emoji', this.state.currentEmo)
-        this.addEmoToLine(this.state.currentEmo)
+        this.addEmoToLine()
         this.setNextEmo();
     }
     toggleMenu() {
@@ -1241,10 +1246,10 @@ export default class EmoChat {
         this.setCurrentEmo(cat, nextIndex);
     }
     updateButtonIcon() {
-        // console.log('updateButtonIcon', this.state.currentEmo);
+        console.log('updateButtonIcon', this.state.currentEmo, this.state.currentCat);
         // если строка заполнена – показываем самолётик
         if (this.message && this.message.line.length === this.config.MESSAGE_LENGTH) {
-            this.button.icon.setFrame(127); // самолётик
+            this.button.icon.setFrame(45); // самолётик 127 был
         } else {
             this.button.icon.setFrame(this.state.currentEmo);
         }

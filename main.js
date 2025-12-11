@@ -38,12 +38,14 @@ class ArenaScene extends Phaser.Scene {
         // sprites
         this.load.image("bg", "assets/sprites/bg_70.png");
         this.load.image("button", "assets/sprites/button_red.png");
-        // this.load.image("emoji_0", "assets/sprites/emoji_0.png");
         // this.load.image("emoji_1", "assets/sprites/emoji_1.png");
         // this.load.image("emoji_2", "assets/sprites/emoji_2.png");
         this.load.image("icon_settings", "assets/sprites/icon_settings.png");
         this.load.image("emo_plane", "assets/sprites/emo_plane_2.png");
         this.load.image("emo_help", "assets/sprites/emo_help_2.png");
+
+        // dev
+        this.load.image("slot", "assets/sprites/dev/slot_1.png");
 
         // атласы
         // this.load.atlas(
@@ -52,13 +54,13 @@ class ArenaScene extends Phaser.Scene {
         //     'assets/sprites/sheets/smileys.json'
         // )
 
-        this.load.spritesheet('emo', 'assets/sprites/sheets/emo_1.png', {
+        this.load.spritesheet('emo', 'assets/sprites/sheets/emo_2.png', {
             frameWidth: 72,     // ширина одной иконки
             frameHeight: 72,    // высота одной иконки
             margin: 0,          // отступ от краёв спрайта (если есть)
             spacing: 0          // промежуток между иконками (если есть)
         });
-        this.load.spritesheet('words', 'assets/sprites/sheets/emo_1.png', {
+        this.load.spritesheet('words', 'assets/sprites/sheets/emo_2.png', {
             frameWidth: 144,     // ширина одной иконки
             frameHeight: 72,    // высота одной иконки
             margin: 0,          // отступ от краёв спрайта (если есть)
@@ -565,7 +567,15 @@ class ArenaScene extends Phaser.Scene {
     create() {
         setTimeout(() => {
             this.emoChat = new EmoChat(this)
-        }, 2000);
+        }, 1000);
+
+        // dev
+        this.slot = this.add
+            .image(0, 0, "slot")
+            .setScale(0.96)
+            .setOrigin(0, 0)
+            .setAlpha(0)
+            .setDepth(500)
         
         this.bg = this.add
             .image(0, 0, "bg")
