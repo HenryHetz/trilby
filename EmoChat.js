@@ -102,11 +102,11 @@ export default class EmoChat {
 
         // поработать над этим
         const EMO_DICTIONARY = {
-            "smile":   { type: 'emo', size: 1, frame: 0 },
-            "wtf":     { type: 'word',  size: 1, frame: 'WTF' },
-            "bruh":    { type: 'word',  size: 2, frame: 'BRUH' },
-            "clutch":  { type: 'word',  size: 2, frame: 'CLUTCH' },
-            "fuck":    { type: 'word',  size: 2, frame: 'F*CK' },
+            "smile": { type: 'emo', size: 1, frame: 0 },
+            "wtf": { type: 'word', size: 1, frame: 'WTF' },
+            "bruh": { type: 'word', size: 2, frame: 'BRUH' },
+            "clutch": { type: 'word', size: 2, frame: 'CLUTCH' },
+            "fuck": { type: 'word', size: 2, frame: 'F*CK' },
         };
     }
     initCategories() {
@@ -162,6 +162,7 @@ export default class EmoChat {
             .setInteractive();
         this.button.icon.defaults = {
             scale: this.button.icon.scale,
+            word_scale: 0.75,
             x: this.config.BUTTON_X,
             y: this.config.BUTTON_Y
         }
@@ -198,12 +199,12 @@ export default class EmoChat {
 
         this.menuArea = new Phaser.Geom.Rectangle(0, this.config.BUTTON_Y - this.config.MENU_HEIGHT / 2, this.config.MENU_WIDTH, this.config.MENU_HEIGHT)
         // надо перехватить нажатия
-        this.menu.bg.setInteractive( 
+        this.menu.bg.setInteractive(
             this.menuArea,
             Phaser.Geom.Rectangle.Contains
         ).on('pointerdown', (pointer) => {
             // console.log('menu bg', pointer.x, pointer.y)
-            
+
             // const m = this.menu.bg.getWorldTransformMatrix();
             // const bgX = m.tx;
             // const bgY = m.ty;
@@ -272,7 +273,7 @@ export default class EmoChat {
             this.menu.lines[index] = this.scene.add.container(x, y)
                 .setDepth()
                 .setAlpha(index === this.state.currentCat ? 1 : 0.5)
-                
+
             this.menu.container.add(this.menu.lines[index])
 
 
@@ -283,38 +284,40 @@ export default class EmoChat {
                 let icon = null;
                 // let iconNumber = Math.round((Math.random() * 100))
                 let iconNumber = i + index * this.config.ICONS_PER_CAT
-                this.categories[index].icons.push(iconNumber)
-                console.log(iconNumber)
+                // this.categories[index].icons.push(iconNumber)
+                // console.log(iconNumber)
 
                 if (this.categories[index].name === 'WORDS') {
                     if (i > 5) break
                     x = this.config.MENU_WIDTH - 10 - 60 * i * 1.5
-                    iconNumber = 16 + i  
+                    iconNumber = 16 + i
                     icon = this.scene.add
-                    .image(x, y, 'words', iconNumber)
-                    .setOrigin(0.5)
-                    .setScale(0.6) // 0.9
-                    .setAlpha(1) // .setAlpha(1 - i * 0.15)
+                        .image(x, y, 'words', iconNumber)
+                        .setOrigin(0.5)
+                        .setScale(0.6) // 0.9
+                        .setAlpha(1) // .setAlpha(1 - i * 0.15)
                     icon.defaults = {
                         alpha: icon.alpha,
                         scale: icon.scale,
                         startX: x + 30,
                         startY: y - (index - 2) * 30
                     }
+                    console.log('words',iconNumber)
                 } else {
                     icon = this.scene.add
-                    .image(x, y, 'emo', iconNumber) // нужно брать из списка
-                    .setOrigin(0.5)
-                    .setScale(0.7) // 0.9
-                    .setAlpha(1) // .setAlpha(1 - i * 0.15)
+                        .image(x, y, 'emo', iconNumber) // нужно брать из списка
+                        .setOrigin(0.5)
+                        .setScale(0.7) // 0.9
+                        .setAlpha(1) // .setAlpha(1 - i * 0.15)
                     icon.defaults = {
                         alpha: icon.alpha,
                         scale: icon.scale,
                         startX: x + 30,
                         startY: y - (index - 2) * 30
                     }
+                    console.log('emo',iconNumber)
                 }
-
+                this.categories[index].icons.push(iconNumber)
                 // if (i === 0)console.log('icon.defaults', icon.defaults)
                 if (icon) this.menu.lines[index].add(icon)
 
@@ -484,6 +487,7 @@ export default class EmoChat {
         this.message.container = this.scene.add.container(0, 0).setDepth(999)
 
         // линия эмодзи
+        this.message.length = 0
         this.message.line = []
         this.message.sprites = []
         this.message.lineContainer = this.scene.add.container(0, 0).setDepth(999)
@@ -519,10 +523,18 @@ export default class EmoChat {
     }
     addEmoToLine() {
         // TODO: позже добавим проверки на длину/ширину и веса слов
+        // const size = this.getEmoSize(this.state.currentEmo);
+        // if (this.getUsedSlots() + size > this.config.MESSAGE_LENGTH) return;
 
-        if (this.message.line.length < this.config.MESSAGE_LENGTH) this.message.line.push(this.state.currentEmo);
-        // if (!emoFrame && this.message.line.length > 0) this.message.line.pop()
+        const obj = {cat: this.state.currentCat, emo: this.state.currentEmo}
+        const size = this.getEmoSize(obj); // можно заменить на size сразу в иконках
 
+        // if (this.message.length < this.config.MESSAGE_LENGTH) this.message.line.push(this.state.currentEmo);
+        if (this.message.length + size > this.config.MESSAGE_LENGTH) return;
+        // нужно какое-то предупреждение показать
+        this.message.line.push({cat: this.state.currentCat, emo: this.state.currentEmo});
+
+        this.setMessLength()
         this.updateMessageLine();
         this.updateButtonIcon();
         this.updatePlane()
@@ -530,44 +542,71 @@ export default class EmoChat {
         // this.updatePredictLine() // тоже не очень
     }
     undoEmoFromLine() {
-        if (this.message.line.length > 0) this.message.line.pop()
-
+        if (this.message.length > 0) this.message.line.pop()
+        this.setMessLength()
         this.updateMessageLine();
         this.updateButtonIcon();
         this.updatePlane()
     }
+    setMessLength() {
+        let length = 0;
+        for (const obj of this.message.line) {
+            length += this.getEmoSize(obj);   
+        }
+        this.message.length = length;
+    }
+    getUsedSlots() {
+        let slots = 0;
+        for (const frame of this.message.line) {
+            slots += this.getEmoSize(frame);
+        }
+        return slots;
+    }
+    getEmoSize(obj) {
+        console.log('getEmoSize', obj)
+        // const cat = this.state.currentCat
+        if (this.categories[obj.cat].name === 'WORDS') return 2;
+        else return 1;
+    }
 
     clearMessageLine() {
         this.message.line.length = 0
+        this.message.length = 0
     }
     updateMessageLine() {
+        const length = this.message.length;
         const line = this.message.line;
         const sprites = this.message.sprites;
 
-        if (!line.length) {
+        if (!length) {
             // если очистишь сообщение — нужно будет ещё и спрайты убить
             sprites.forEach(s => s.destroy());
             this.message.sprites = [];
             return;
         }
 
-        const spacing = 72 * 0.52; // расстояние между иконками
+        const spacing = 72 * 0.55; // расстояние между иконками
         const targetY = this.feed.messageLineBG.startY;
 
         // центрируем по BG (можно подправить формулу)
-        const baseX = this.feed.messageLineBG.startX + 16;
+        const baseX = this.feed.messageLineBG.startX - 4; //  + 16
+        let accumulatedSize = 0;
 
         for (let index = 0; index < line.length; index++) {
-            const frame = line[index];
-            const targetX = baseX + index * spacing;
+            const cat = this.state.currentCat
+            const sheet = (this.categories[cat].name === 'WORDS') ? 'words' : 'emo'
+            const frame = line[index].emo;
+            console.log('updateMessageLine', line[index])
+            accumulatedSize += index > 0? this.getEmoSize(line[index - 1]) : 0;
+            const targetX = baseX + accumulatedSize * spacing;
 
             let icon = sprites[index];
 
             if (!icon) {
                 // это НОВАЯ иконка → создаём у кнопки и анимируем "прилёт"
                 icon = this.scene.add
-                    .image(targetX, targetY + 50, 'emo', frame)
-                    .setOrigin(0.5)
+                    .image(targetX, targetY + 50, sheet, frame)
+                    .setOrigin(0, 0.5)
                     .setScale(0.55);
 
                 sprites[index] = icon;
@@ -638,10 +677,10 @@ export default class EmoChat {
     }
     updatePlane() {
         // реакция маленького самолётика - вынести
-        if (this.message.line.length > 0) this.feed.messagePlane.alpha = 1
+        if (this.message.length > 0) this.feed.messagePlane.alpha = 1
         else this.feed.messagePlane.alpha = 0.5
 
-        if (this.message.line.length === this.config.MESSAGE_LENGTH) this.reflexPlane(1000)
+        if (this.message.length === this.config.MESSAGE_LENGTH) this.reflexPlane(1000)
     }
     reflexPlane(delay, callback) {
         // заменить на интервал и проверку после таймера
@@ -678,7 +717,7 @@ export default class EmoChat {
         this.feed.bg.fillRoundedRect(this.config.FEED_X, this.config.FEED_Y, this.config.FEED_WIDTH, this.config.FEED_HEIGHT, indent * 3);
 
         // 👉 контейнер для строк фида (плашек)
-        
+
         this.feed.messageCont = this.scene.add.container(
             this.config.FEED_X + indent,
             this.config.FEED_Y + indent
@@ -698,9 +737,9 @@ export default class EmoChat {
             ).setDepth(1000)
 
             const wrapper = this.scene.add.graphics()
-            .fillStyle(0x212838, 0.9)
-            .fillRoundedRect(0, 0, messageWidth, messageHeight, radius)
-            
+                .fillStyle(0x212838, 0.9)
+                .fillRoundedRect(0, 0, messageWidth, messageHeight, radius)
+
             const name = this.scene.add.text(0 + indent * 2, 0 + indent, 'NAME_' + (index + 1), {
                 fontFamily: 'CyberFont',
                 fontSize: '14px',
@@ -721,7 +760,7 @@ export default class EmoChat {
         this.feed.messageLineBG.startY = this.config.FEED_Y + this.config.FEED_HEIGHT - 20
 
         this.feed.messagePlane = this.scene.add
-            .image(this.config.FEED_X + this.config.FEED_WIDTH - 20, this.config.FEED_Y + this.config.FEED_HEIGHT - 20, 'emo_plane')
+            .image(this.config.FEED_X + this.config.FEED_WIDTH - 18, this.config.FEED_Y + this.config.FEED_HEIGHT - 20, 'emo_plane')
             .setOrigin(0.5)
             .setScale(0.5)
             .setAlpha(0.5)
@@ -823,7 +862,7 @@ export default class EmoChat {
     }
 
     eraseLine() {
-        if (this.message.line.length > 0) {
+        if (this.message.length > 0) {
             this.clearMessageLine()
             this.updateMessageLine()
             this.setCurrentEmo(this.state.currentCat, this.state.currentIconIndex)
@@ -839,11 +878,11 @@ export default class EmoChat {
         let startX = 0, startY = 0, startTime = 0;
 
         scene.input.on("pointerdown", (p) => {
-            
+
             // console.log('pointerdown')
             // console.log('area', area.x, area.y, area.radius);
             // console.log('pointer', p.x, p.y);
-            
+
             if (Phaser.Geom.Circle.Contains(area, p.x, p.y)) {
                 startX = p.x;
                 startY = p.y;
@@ -861,13 +900,13 @@ export default class EmoChat {
                 // startTime = scene.time.now;
                 // console.log('pointerdown menu', this.menu.container.visible)
                 const local_x = p.x - menu.x;
-                const local_y = p.y - menu.y; 
+                const local_y = p.y - menu.y;
                 // const delta_y = local_y - menu.height / 2
-                let line = Math.ceil((local_y - 10)/60)
+                let line = Math.ceil((local_y - 10) / 60)
                 // console.log('pointerdown menu', local_x, local_y, line)
                 if (line > 0 && line < 6) {
                     const index = line - 1
-                    // console.log('menu line', this.categories[index].name)
+                    console.log('line', this.categories[index].name)
                     this.updateCat(index)
                     // поищем иконку
                     // console.log('line icons', this.categories[index].icons)
@@ -882,8 +921,10 @@ export default class EmoChat {
                         const shift = (index <= 2) ? gapX * index : gapX * (4 - index)
                         // console.log('shift', shift)
                         const gap = 30 * (index - 2)
-                        let cell = Math.ceil((delta_x - shift)/60)
-                        // console.log('delta_x', delta_x, cell)
+                        const frameWidth = this.categories[index].name === 'WORDS' ? 90 : 60
+                        let cell = Math.ceil((delta_x - shift) / frameWidth)
+                        console.log('cell', cell)
+
                         if (cell > 0) {
                             const i = cell - 1
                             if (this.menu.lines[index].list[i]) {
@@ -1104,7 +1145,7 @@ export default class EmoChat {
         }
     }
     tapSelector() {
-        if (this.message.line.length > 0) {
+        if (this.message.length > 0) {
             this.sendMessage();
         } else {
             // отправить сразу в фид эмо
@@ -1114,14 +1155,14 @@ export default class EmoChat {
         }
     }
     upSelector() {
-        if (this.message.line.length === this.config.MESSAGE_LENGTH) {
+        if (this.message.length === this.config.MESSAGE_LENGTH) {
             this.sendMessage();
         } else {
             this.sendEmoji()
         }
     }
     downSelector() {
-        if (this.message.line.length === 0) {
+        if (this.message.length === 0) {
             this.nextCategory();
         } else {
             this.undoEmoji()
@@ -1133,7 +1174,7 @@ export default class EmoChat {
         this.setNextEmo();
     }
     sendEmoji() {
-        // console.log('send emoji', this.state.currentEmo)
+        console.log('send emoji', this.state.currentCat, this.state.currentEmo)
         this.addEmoToLine()
         this.setNextEmo();
     }
@@ -1182,7 +1223,7 @@ export default class EmoChat {
     }
     sendMessage() {
         // console.log('send message', this.message.line);
-        if (this.message.line.length === 0) return
+        if (this.message.length === 0) return
         this.commitMessage(this.message.line);
         setTimeout(() => {
             // this.commitMessage();
@@ -1200,12 +1241,15 @@ export default class EmoChat {
     }
     // Маппинг “категория+индекс → frame”
     getFrameFor(catIndex, iconIndex) {
+        
         const cat = this.categories[catIndex];
         if (!cat) cat = 0; // дефолт
+        // if (cat.name === 'WORDS') {
 
+        // }
         const iconName = cat.icons[iconIndex];
-        // console.log('getFrameFor', catIndex, iconIndex, iconName ); // this.iconSet[iconName]
-        return iconName ?? 1;
+        console.log('getFrameFor', catIndex, iconIndex, cat, iconName ); // this.iconSet[iconName]
+        return iconName ?? 0;
     }
     // иконка на кнопку
     setCurrentEmo(catIndex, iconIndex) {
@@ -1235,7 +1279,7 @@ export default class EmoChat {
         }
 
         // если строка заполнена – логика кнопки (самолётик) решается в updateButtonIcon
-        if (this.message.line.length === this.config.MESSAGE_LENGTH) {
+        if (this.message.length === this.config.MESSAGE_LENGTH) {
             this.updateButtonIcon();
             return;
         }
@@ -1246,11 +1290,20 @@ export default class EmoChat {
         this.setCurrentEmo(cat, nextIndex);
     }
     updateButtonIcon() {
-        console.log('updateButtonIcon', this.state.currentEmo, this.state.currentCat);
+        console.log('updateButtonIcon', this.state.currentCat, this.state.currentEmo, this.button.icon);
         // если строка заполнена – показываем самолётик
-        if (this.message && this.message.line.length === this.config.MESSAGE_LENGTH) {
-            this.button.icon.setFrame(45); // самолётик 127 был
+        if (this.message && this.message.length === this.config.MESSAGE_LENGTH) {
+            this.button.icon.setTexture('emo');
+            this.button.icon.setFrame(44); // самолётик 127 был
+            this.button.icon.setScale(this.button.icon.defaults.scale);
         } else {
+            if (this.categories[this.state.currentCat].name === 'WORDS') {
+                this.button.icon.setTexture('words');
+                this.button.icon.setScale(this.button.icon.defaults.word_scale);
+            } else {
+                this.button.icon.setTexture('emo');
+                this.button.icon.setScale(this.button.icon.defaults.scale);
+            }   
             this.button.icon.setFrame(this.state.currentEmo);
         }
     }
@@ -1321,12 +1374,13 @@ export default class EmoChat {
                 const icon = this.button.icon
                 this.scene.tweens.add({
                     targets: icon,
-                    scale: icon.defaults.scale * 1.2,
+                    scale: icon.scale * 1.1,
                     duration: 50,
                     // yoyo: true,
                     ease: "Back.easeOut", // 'Quad.easeOut' 
                     onComplete: () => {
-                        icon.scale = icon.defaults.scale
+                        if (this.categories[this.state.currentCat].name === 'WORDS' && icon.frame.name != 44) icon.setScale(icon.defaults.word_scale)
+                        else icon.setScale(icon.defaults.scale)
                     },
                 });
             }
@@ -1429,7 +1483,7 @@ export default class EmoChat {
 
     }
     tapContext() {
-        if (this.message.line.length > 0) this.sendMessage()
+        if (this.message.length > 0) this.sendMessage()
         else this.toggleMenu()
     }
     switchGestureScheme() {
