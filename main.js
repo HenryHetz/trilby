@@ -431,6 +431,7 @@ class ArenaScene extends Phaser.Scene {
             }).setAlpha(1)
             .setOrigin(0.5)
             .setDepth(20)
+            // .setShadow(0, 0, '#ff0000ff', 4, true, true);
 
         // SAFE ZONE
         this.safeZone = this.add
@@ -844,6 +845,12 @@ class ArenaScene extends Phaser.Scene {
                     scene.laserStart = Date.now();
                     // console.log('scene.laser', scene.laser)
 
+                    // dev
+                    // drawLaserFlash(
+                    //     scene,
+                    //     scene.laser,
+                    // );
+
                     // sound
                     scene.sfx.laser.play({
                         // pitch: -1000,
@@ -957,7 +964,7 @@ class ArenaScene extends Phaser.Scene {
             crash: this.sound.add("crash", { volume: 1 }),
             laser: this.sound.add("laser", { volume: 0.5, detune: -1600 }),
             crowd: this.sound.add("crowd", { volume: 1 }),
-            ambient: this.sound.add("ambient", { volume: 0.05, loop: true }),
+            ambient: this.sound.add("ambient", { volume: 0.02, loop: true }),
             cashout: this.sound.add("cashout", { volume: 0.5 }),
             woosh: this.sound.add("woosh", { volume: 0.5 }),
         };
@@ -985,7 +992,7 @@ class ArenaScene extends Phaser.Scene {
         })
 
         setTimeout(() => {
-            // this.sfx.ambient.play();
+            this.sfx.ambient.play();
             this.resetRound();
             this.showLastLog()
         }, 1000);
@@ -1158,9 +1165,15 @@ class ArenaScene extends Phaser.Scene {
 
         // check bean crash
         if (this.laser && this.checkCrash(this.laser)) {
-
+            // drawLaserFlash(this, this.laser);
             // CRASH
-            if (this.laser.type === "red") this.finishRound();
+            if (this.laser.type === "red") {
+                // if (this.win < 10) return; // dev
+                // this.cameras.main.shake(this.win, 0.01);
+                // this.cameras.main.flash(10, 255, 0, 0)
+                this.finishRound();
+                // return
+            }
 
 
             // dev
@@ -1244,6 +1257,13 @@ class ArenaScene extends Phaser.Scene {
                             // volume: 0.5 + 0.4 * impact, // 0.35–0.8
                             // detune: Phaser.Math.Between(-500, 500), // небольшая вариация тона
                         });
+
+                        // dev
+                        if (this.win > 1.1) {
+                            // тряска бесит!!!)
+                            // this.cameras.main.shake(this.win * 10, 0.01);
+                            // this.cameras.main.flash(100, 255, 255, 255)
+                        }
                     }
 
                     // text prize
@@ -1463,6 +1483,9 @@ class ArenaScene extends Phaser.Scene {
         this.win += targetWin + wallWin;
         setTimeout(() => {
             this.xCounter.setText("X" + this.win.toFixed(2));
+            if (this.win >= 2 && this.xCounter.color !== this.textColors.yellow) {
+                this.xCounter.setColor(this.textColors.yellow)
+            }
             // не растёт
             // if (!this.isExit) this.stakeCounter.setText((this.bet * this.win).toFixed(2));
             // растёт красным
@@ -1534,6 +1557,8 @@ class ArenaScene extends Phaser.Scene {
         // text
         // this.superStateName.freeze.setColor(this.textColors.red)
         // this.superStateName.greedy.setColor(this.textColors.red)
+
+        // this.xCounter.setColor(this.textColors.red)
     }
     showStat() {
         const rtp = this.win / this.targetCrash;
@@ -1620,7 +1645,8 @@ class ArenaScene extends Phaser.Scene {
     }
     resetRound(target) {
         // сброс позиции и скорости
-        // setTimeout(() => {
+        this.xCounter.setColor(this.textColors.red)
+
         this.ball.position.set(ARENA_CENTER.x, ARENA_CENTER.y + 180);
         this.ball.velocity
             .setToPolar(
@@ -2525,7 +2551,33 @@ function drawLaser(scene, center, radius, startAngle, wideAngle, type) {
     // вернём объект для управления (например, чтобы удалить потом)
     return laser;
 }
+function drawLaserFlash(scene, laser, center = {x: 320, y: 640}, radius = 300) {
+    if (!laser) return;
+    // console.log('flash laser', laser);
+    // return; // временно отключено
+    const flash = scene.add.graphics().setDepth(0).setVisible(true);
+    flash.clear();
 
+    const start = Phaser.Math.DegToRad(laser.startAngle + laser.wideAngle);
+    const end = Phaser.Math.DegToRad(laser.startAngle);
+
+    // стиль: полупрозрачный красный сектор
+    let color = scene.standartColors.red;
+    if (laser.type === "blue") color = scene.standartColors.blue;
+    if (laser.type === "yellow") color = scene.standartColors.yellow;
+
+    flash.fillStyle(color, 0.5);
+    flash.beginPath();
+    flash.moveTo(center.x, center.y);
+    flash.arc(center.x, center.y, radius, start, end, false);
+    flash.closePath();
+    flash.fillPath();
+
+    setTimeout(() => {
+        flash.clear();
+        flash.destroy();
+    }, 500);
+}
 function clearLaser(laser) {
     if (laser) {
         laser.clear();

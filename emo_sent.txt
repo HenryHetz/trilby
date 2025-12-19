@@ -517,3 +517,59 @@ WOW
 😅🤣 LOL
 
 😬😵‍💫🔥
+
+1. Позитив / POSITIVE
+😎 → cool
+😁 → grin
+🤩 → star_eyes
+🤑 → money_face
+😅 → grin_sweat
+😉 → wink
+😜 → tongue_wink
+😍 → love_eyes
+
+2. Негатив / NEGATIVE
+😡 → angry
+🤬 → rage
+😭 → cry_hard
+💀 → dead
+😖 → pain
+🤢 → nausea
+🤡 → clown
+💩 → shit
+
+3. Тилт / TILT
+🤯 → mindblown
+🤔 → thinking        
+🥺 → pleading
+😱 → panic
+😬 → awkward
+🫠 → melting
+😵‍💫 → dizzy
+😤 → frustrated
+
+4. Предметы, разное / ITEMS
+🔥 → fire
+💰 → money
+💸 → loss
+⭐ → star
+🚀 → rocket
+🍀 → luck
+🎲 → dice
+🎰 → slots
+
+5. Слова / WORDS
+fuck
+wtf
+lol
+bruh
+ez
+wow
+
+6. Служебные
+plane_black
+plane_blue
+😶 → empty
+🤖 → bot
+
+7. Виновые

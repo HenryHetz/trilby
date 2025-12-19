@@ -1,3 +1,11 @@
+// нужна предикция - это первый символ по контексту
+// и автокомплит - следующие символы в зависимости от введённых и контекста
+// автотюнинг - активные иконки становятся ближе к пальцу (в закрытом меню)
+// нужно записывать выбор игрока в локал и смотреть на него для автокомплита
+// и нужно добавить 2 кнопки в меню: стереть и отправить
+// особые события в контекст
+// слова и символы к особым событиям, которые нельзя найти в меню
+
 export default class EmoChat {
     constructor(scene) {
         // console.log(scene)
@@ -40,7 +48,9 @@ export default class EmoChat {
             MENU_HEIGHT: 320,
             MESSAGE_LENGTH: 3,
             DOUBLE_TAP_DELAY: 250,
-            ICONS_PER_CAT: 8
+            ICONS_PER_CAT_MAX: 8,
+            ICONS_INDENT_X: 30,
+            ICONS_INDENT_Y: 60,
         };
     }
     init() {
@@ -48,8 +58,8 @@ export default class EmoChat {
         this.initArea()
         this.initState()
         this.initCategories()
-        // this.initIconSet()
-        this.initNames()
+        this.initEmoSet()
+        this.initUserNames()
         // 
         this.lastTapTime = 0;
         this.tapTimeoutId = null;
@@ -74,7 +84,7 @@ export default class EmoChat {
         this.state = {
             currentCat: 0,
             currentIconIndex: 0,   // индекс иконки в категории
-            currentEmo: 1          // фактический frame спрайта
+            currentEmo: 'cool' 
         };
 
         this.state.update = object => {
@@ -82,46 +92,136 @@ export default class EmoChat {
                 if (!Object.hasOwn(object, key)) continue;
                 this.state[key] = object[key];
             }
+            console.log('this.state.update', this.state)
         };
     }
     initEmoSet() {
-        // загружаем и активируем картинки - может lazy?
-        // пока временное решение
-        // и скорее всего оно будет другое - нужно читать инструкцию к картинкам...
-        this.iconSet = {
-            'POSITIVE_0': 1,
-            'POSITIVE_1': 6,
-            'POSITIVE_2': 14,
-            'POSITIVE_3': 15,
-            'POSITIVE_4': 26,
-            'POSITIVE_5': 27,
-            'POSITIVE_6': 11,
-            'POSITIVE_7': 3,
-            'POSITIVE_8': 23,
-        }
+        this.emoSet = {
+            // 1
+            cool: { sheet: 'emo', frame: 0, size: 1, reference: '😎' },
+            grin: { sheet: 'emo', frame: 1, size: 1, reference: '😁' },
+            star_eyes: { sheet: 'emo', frame: 2, size: 1, reference: '🤩' },
+            money_face: { sheet: 'emo', frame: 3, size: 1, reference: '🤑' },
+            grin_sweat: { sheet: 'emo', frame: 4, size: 1, reference: '😅' },
+            wink: { sheet: 'emo', frame: 5, size: 1, reference: '😉' },
+            tongue_wink: { sheet: 'emo', frame: 6, size: 1, reference: '😜' },
+            love_eyes: { sheet: 'emo', frame: 7, size: 1, reference: '😍' },
+            // 2
+            angry: { sheet: 'emo', frame: 8, size: 1, reference: '' },
+            rage: { sheet: 'emo', frame: 9, size: 1, reference: '' },
+            cry_hard: { sheet: 'emo', frame: 10, size: 1, reference: '' },
+            dead: { sheet: 'emo', frame: 11, size: 1, reference: '' },
+            pain: { sheet: 'emo', frame: 12, size: 1, reference: '' },
+            nausea: { sheet: 'emo', frame: 13, size: 1, reference: '' },
+            clown: { sheet: 'emo', frame: 14, size: 1, reference: '' },
+            shit: { sheet: 'emo', frame: 15, size: 1, reference: '' },
+            // 3
+            mindblown: { sheet: 'emo', frame: 16, size: 1, reference: '' },
+            thinking: { sheet: 'emo', frame: 17, size: 1, reference: '' },
+            pleading: { sheet: 'emo', frame: 18, size: 1, reference: '' },
+            panic: { sheet: 'emo', frame: 19, size: 1, reference: '' },
+            awkward: { sheet: 'emo', frame: 20, size: 1, reference: '' },
+            melting: { sheet: 'emo', frame: 21, size: 1, reference: '' },
+            dizzy: { sheet: 'emo', frame: 22, size: 1, reference: '' },
+            frustrated: { sheet: 'emo', frame: 23, size: 1, reference: '' },
 
-        // поработать над этим
-        const EMO_DICTIONARY = {
-            "smile": { type: 'emo', size: 1, frame: 0 },
-            "wtf": { type: 'word', size: 1, frame: 'WTF' },
-            "bruh": { type: 'word', size: 2, frame: 'BRUH' },
-            "clutch": { type: 'word', size: 2, frame: 'CLUTCH' },
-            "fuck": { type: 'word', size: 2, frame: 'F*CK' },
+            // 4. items
+            fire: { sheet: 'emo', frame: 24, size: 1, reference: '' },
+            money: { sheet: 'emo', frame: 25, size: 1, reference: '' },
+            loss: { sheet: 'emo', frame: 26, size: 1, reference: '' },
+            star: { sheet: 'emo', frame: 27, size: 1, reference: '' },
+            rocket: { sheet: 'emo', frame: 28, size: 1, reference: '' },
+            luck: { sheet: 'emo', frame: 29, size: 1, reference: '' },
+            dice: { sheet: 'emo', frame: 30, size: 1, reference: '' },
+            slots: { sheet: 'emo', frame: 31, size: 1, reference: '' },
+
+            // 5. words - 2 слота
+            fuck: { sheet: 'words', frame: 16, size: 2, reference: '' },
+            wtf: { sheet: 'words', frame: 17, size: 2, reference: '' },
+            lol: { sheet: 'words', frame: 18, size: 2, reference: '' },
+            bruh: { sheet: 'words', frame: 19, size: 2, reference: '' },
+            ez: { sheet: 'words', frame: 20, size: 2, reference: '' },
+            wow: { sheet: 'words', frame: 21, size: 2, reference: '' },
+
+            // служебные - не выводим в меню
+            plane_black: { sheet: 'emo', frame: 44, size: 1, reference: '' },
+            plane_blue: { sheet: 'emo', frame: 45, size: 1, reference: '' },
+            empty: { sheet: 'emo', frame: 46, size: 1, reference: '' },
+            bot: { sheet: 'emo', frame: 47, size: 1, reference: '' },
+
+            // виновые
+
         };
     }
     initCategories() {
-        const categoryNames = ['POSITIVE', 'NEGATIVE', 'FUN', 'REACTION', 'WORDS'];
-        const iconsPerCategory = 5; // сколько кадров у каждой категории
-        this.categories = categoryNames.map(name => ({
+        this.categoryMap = {
+            POSITIVE: [
+                'cool',
+                'grin',
+                'star_eyes',
+                'money_face',
+                'grin_sweat',
+                'wink',
+                'tongue_wink',
+                'love_eyes'
+            ],
+
+            NEGATIVE: [
+                'angry',
+                'rage',
+                'cry_hard',
+                'dead',
+                'pain',
+                'nausea',
+                'clown',
+                'shit'
+            ],
+
+            TILT: [
+                'mindblown',
+                'thinking',
+                'pleading',
+                'panic',
+                'awkward',
+                'melting',
+                'dizzy',
+                'frustrated'
+            ],
+
+            ITEMS: [
+                'fire',
+                'money',
+                'loss',
+                'star',
+                'rocket',
+                'luck',
+                'dice',
+                'slots'
+            ],
+
+            WORDS: [
+                'fuck',
+                'wtf',
+                'lol',
+                'bruh',
+                'ez',
+                'wow'
+            ],
+            // OTHER: [
+            //     'plane_black',
+            //     'plane_blue',
+            //     'empty',
+            //     'bot'
+            // ]
+        }
+
+        this.categories = Object.entries(this.categoryMap).map(([name, icons]) => ({
             name,
-            // icons: Array.from({ length: iconsPerCategory }, (_, i) => `${name}_${i}`)
-            icons: []
+            icons
         }));
         // console.log(this.categories)
-        // const cat = this.categories.find(c => c.name === 'POSITIVE');
-        // console.table(cat.icons);
     }
-    initNames() {
+    initUserNames() {
         this.randomNames = [
             'HENRY', 'LINDA', 'PAUL', 'JOKER', 'MOOD', 'OCTOPAN', 'SWEETY', 'ROCKET', 'ADAM_W', 'SAYMYNAME', 'JESSY', 'ANGEL', 'VICKY', 'SUNDAY',
         ]
@@ -155,7 +255,7 @@ export default class EmoChat {
 
         // иконка в центре области 
         this.button.icon = this.scene.add
-            .image(this.config.BUTTON_X, this.config.BUTTON_Y, 'emo', 1)
+            .image(this.config.BUTTON_X, this.config.BUTTON_Y, 'emo', 0)
             .setOrigin(0.5)
             .setScale(1.1)
             // .setDepth(100)
@@ -166,8 +266,7 @@ export default class EmoChat {
             x: this.config.BUTTON_X,
             y: this.config.BUTTON_Y
         }
-        this.state.currentEmo = 1
-        this.state.update({ currentEmo: 1 })
+        
         // название
         this.button.label = this.scene.add
             .text(this.config.BUTTON_X, this.config.BUTTON_Y - 50, `EMO_CHAT`, {
@@ -238,8 +337,9 @@ export default class EmoChat {
         // this.menu.container.add(this.menu.lines) // это не сработает
 
         for (let index = 0; index < this.categories.length; index++) {
-            const gapX = 30
-            const gapY = 60
+            const category = this.categories[index]
+            const gapX = this.config.ICONS_INDENT_X
+            const gapY = this.config.ICONS_INDENT_Y
             const shift = (index <= 2) ? gapX * index : gapX * (4 - index)
             const x = this.config.BUTTON_X - this.config.MENU_WIDTH - gapX - shift
             const y = this.config.BUTTON_Y + gapY * (index - 2)
@@ -276,48 +376,50 @@ export default class EmoChat {
 
             this.menu.container.add(this.menu.lines[index])
 
-
-
-            for (let i = 0; i < this.config.ICONS_PER_CAT; i++) {
+            // иконки
+            for (let i = 0; i < category.icons.length; i++) { 
+                if (i >= this.config.ICONS_PER_CAT_MAX) break;
                 let x = this.config.MENU_WIDTH - 60 * i
                 let y = 0
                 let icon = null;
-                // let iconNumber = Math.round((Math.random() * 100))
-                let iconNumber = i + index * this.config.ICONS_PER_CAT
-                // this.categories[index].icons.push(iconNumber)
-                // console.log(iconNumber)
 
-                if (this.categories[index].name === 'WORDS') {
-                    if (i > 5) break
+                // var 2
+                const iconName = category.icons[i]
+                const iconSheet = this.emoSet[iconName].sheet
+                const iconNumber = this.emoSet[iconName].frame
+                // console.log(iconName, iconSheet, iconNumber)
+
+                if (category.name === 'WORDS') {
+                    // if (i > 5) break
                     x = this.config.MENU_WIDTH - 10 - 60 * i * 1.5
-                    iconNumber = 16 + i
+                    // iconNumber = 16 + i
                     icon = this.scene.add
-                        .image(x, y, 'words', iconNumber)
+                        .image(x, y, iconSheet, iconNumber)
                         .setOrigin(0.5)
                         .setScale(0.6) // 0.9
                         .setAlpha(1) // .setAlpha(1 - i * 0.15)
                     icon.defaults = {
                         alpha: icon.alpha,
                         scale: icon.scale,
-                        startX: x + 30,
-                        startY: y - (index - 2) * 30
+                        startX: x + this.config.ICONS_INDENT_X,
+                        startY: y - (index - 2) * this.config.ICONS_INDENT_X
                     }
-                    console.log('words',iconNumber)
+                    // console.log(iconSheet, iconNumber)
                 } else {
                     icon = this.scene.add
-                        .image(x, y, 'emo', iconNumber) // нужно брать из списка
+                        .image(x, y, iconSheet, iconNumber) // нужно брать из списка
                         .setOrigin(0.5)
                         .setScale(0.7) // 0.9
                         .setAlpha(1) // .setAlpha(1 - i * 0.15)
                     icon.defaults = {
                         alpha: icon.alpha,
                         scale: icon.scale,
-                        startX: x + 30,
-                        startY: y - (index - 2) * 30
+                        startX: x + this.config.ICONS_INDENT_X,
+                        startY: y - (index - 2) * this.config.ICONS_INDENT_X
                     }
-                    console.log('emo',iconNumber)
+                    // console.log(iconSheet, iconNumber)
                 }
-                this.categories[index].icons.push(iconNumber)
+                // this.categories[index].icons.push(iconNumber)
                 // if (i === 0)console.log('icon.defaults', icon.defaults)
                 if (icon) this.menu.lines[index].add(icon)
 
@@ -356,7 +458,7 @@ export default class EmoChat {
 
         this.menuCloser.text = this.scene.add.text(x, y, 'CLOSE\nMENU', {
             font: '12px Helvetica',
-            fill: this.scene.textColors.red,
+            fill: this.scene.textColors.yellow,
         })
             .setAlpha(1)
             .setOrigin(0.5)
@@ -378,6 +480,27 @@ export default class EmoChat {
 
         this.menu.container.add([this.menuCloser.button, this.menuCloser.text])
 
+        // delete
+        this.delete = {}
+        this.delete.button = this.scene.add.graphics()
+            .fillStyle(0x212838, 0)
+            .fillRoundedRect(x - 30 - buttonW / 2, this.config.BUTTON_Y - 70 - buttonH / 2, buttonW + 30, buttonH, buttonRadius)
+        
+        this.delete.text = this.scene.add.text(x - 15, this.config.BUTTON_Y - 70, 'DELETE', {
+            font: '14px Helvetica',
+            fill: this.scene.textColors.yellow,
+        })
+            .setAlpha(0)
+            .setOrigin(0.5)
+            .setAlign('center')
+            .setInteractive()
+            .on('pointerdown', () => {
+                this.undoEmoji()
+            })
+
+        this.menu.container.add([this.delete.button, this.delete.text])
+        // send
+
     }
     createHelper() {
         // контейнер
@@ -387,7 +510,7 @@ export default class EmoChat {
         const x = 170 // 170
         const y = 510 // 500
         const width = 300
-        const height = 260
+        const height = 300
 
         // рамка
         this.helper.frame = this.scene.add.graphics()
@@ -410,13 +533,7 @@ export default class EmoChat {
         // Swipe <- prev emoji\n
         // Swipe DOWN - change cat
 
-        this.helper.top = this.scene.add.text(x + width / 2, y + 10, `EMO_CHAT HELPER`, {
-            font: "20px Helvetica",
-            fill: '#f8e700',
-        })
-            .setAlpha(0)
-            .setOrigin(0.5, 0)
-            .setAlign('center')
+        
 
         this.helper.text = this.scene.add.text(x + 20, y + 20,
             '', {
@@ -427,7 +544,20 @@ export default class EmoChat {
             .setAlign('left')
             .setAlpha(0)
 
-        this.helper.container.add([this.helper.bg, this.helper.frame, this.helper.top, this.helper.text])
+        this.helper.label = this.scene.add.graphics()
+            .fillStyle(this.scene.standartColors.red, 1) // '#ff0000ff'
+            .fillRoundedRect(x, y - 100, width, 24, 12);
+
+        this.helper.top = this.scene.add.text(x + width / 2, y - 88, `EMOCHAT BY AIRCRAFT.GAMES`, {
+            font: "16px Helvetica",
+            fill: '#020202ff',
+        })
+            .setAlpha(1)
+            .setOrigin(0.5)
+            .setAlign('center')
+            // .setShadow(1, 1, '#090909ff', 1, true, true);
+
+        this.helper.container.add([this.helper.bg, this.helper.frame, this.helper.label, this.helper.top, this.helper.text])
 
         // закрывашка-открывашка хелпера
         this.helperCloser = {}
@@ -458,7 +588,7 @@ export default class EmoChat {
 
         this.helperCloser.text = this.scene.add.text(closerX, closerY, 'CLOSE\nHELP', {
             font: '12px Helvetica',
-            fill: this.scene.textColors.red,
+            fill: this.scene.textColors.yellow,
         })
             .setAlpha(1)
             .setOrigin(0.5)
@@ -526,13 +656,15 @@ export default class EmoChat {
         // const size = this.getEmoSize(this.state.currentEmo);
         // if (this.getUsedSlots() + size > this.config.MESSAGE_LENGTH) return;
 
-        const obj = {cat: this.state.currentCat, emo: this.state.currentEmo}
-        const size = this.getEmoSize(obj); // можно заменить на size сразу в иконках
+        const obj = { cat: this.state.currentCat, emo: this.state.currentEmo }
+        // const size = this.getEmoSize(obj); // можно заменить на size сразу в иконках
+        const emo = this.emoSet[this.state.currentEmo]
+        const size = emo.size;
 
         // if (this.message.length < this.config.MESSAGE_LENGTH) this.message.line.push(this.state.currentEmo);
         if (this.message.length + size > this.config.MESSAGE_LENGTH) return;
         // нужно какое-то предупреждение показать
-        this.message.line.push({cat: this.state.currentCat, emo: this.state.currentEmo});
+        this.message.line.push({ cat: this.state.currentCat, emo: this.state.currentEmo });
 
         this.setMessLength()
         this.updateMessageLine();
@@ -551,7 +683,7 @@ export default class EmoChat {
     setMessLength() {
         let length = 0;
         for (const obj of this.message.line) {
-            length += this.getEmoSize(obj);   
+            length += this.getEmoSize(obj);
         }
         this.message.length = length;
     }
@@ -593,11 +725,14 @@ export default class EmoChat {
         let accumulatedSize = 0;
 
         for (let index = 0; index < line.length; index++) {
+            const emoName = line[index].emo;
+            const emo = this.emoSet[emoName];
             const cat = this.state.currentCat
-            const sheet = (this.categories[cat].name === 'WORDS') ? 'words' : 'emo'
-            const frame = line[index].emo;
-            console.log('updateMessageLine', line[index])
-            accumulatedSize += index > 0? this.getEmoSize(line[index - 1]) : 0;
+            // const sheet = (this.categories[cat].name === 'WORDS') ? 'words' : 'emo'
+            const sheet = emo.sheet
+            const frame = emo.frame;
+            console.log('updateMessageLine', emoName, sheet, frame)
+            accumulatedSize += index > 0 ? this.getEmoSize(line[index - 1]) : 0;
             const targetX = baseX + accumulatedSize * spacing;
 
             let icon = sprites[index];
@@ -906,8 +1041,7 @@ export default class EmoChat {
                 // console.log('pointerdown menu', local_x, local_y, line)
                 if (line > 0 && line < 6) {
                     const index = line - 1
-                    console.log('line', this.categories[index].name)
-                    this.updateCat(index)
+                    
                     // поищем иконку
                     // console.log('line icons', this.categories[index].icons)
                     // console.log('line cont', this.menu.lines[index].x, this.menu.lines[index].y)
@@ -917,13 +1051,13 @@ export default class EmoChat {
                     // console.log('this.button.x', this.button.icon.x)
                     const delta_x = this.button.icon.x - local_x
                     if (delta_x > 0) {
-                        const gapX = 30
+                        const gapX = this.config.ICONS_INDENT_X
                         const shift = (index <= 2) ? gapX * index : gapX * (4 - index)
                         // console.log('shift', shift)
-                        const gap = 30 * (index - 2)
+                        const gap = this.config.ICONS_INDENT_X * (index - 2)
                         const frameWidth = this.categories[index].name === 'WORDS' ? 90 : 60
                         let cell = Math.ceil((delta_x - shift) / frameWidth)
-                        console.log('cell', cell)
+                        // console.log('cell', cell)
 
                         if (cell > 0) {
                             const i = cell - 1
@@ -937,6 +1071,9 @@ export default class EmoChat {
                                 });
                                 this.sendEmoji()
                             }
+                            // console.log('line', this.categories[index].name)
+                    
+                            this.updateCat(index) // не всегда это нужно
                         }
                     }
                 }
@@ -1241,14 +1378,14 @@ export default class EmoChat {
     }
     // Маппинг “категория+индекс → frame”
     getFrameFor(catIndex, iconIndex) {
-        
+
         const cat = this.categories[catIndex];
         if (!cat) cat = 0; // дефолт
         // if (cat.name === 'WORDS') {
 
         // }
         const iconName = cat.icons[iconIndex];
-        console.log('getFrameFor', catIndex, iconIndex, cat, iconName ); // this.iconSet[iconName]
+        console.log('getFrameFor', catIndex, iconIndex, cat, iconName); // this.emoSet[iconName]
         return iconName ?? 0;
     }
     // иконка на кнопку
@@ -1290,11 +1427,16 @@ export default class EmoChat {
         this.setCurrentEmo(cat, nextIndex);
     }
     updateButtonIcon() {
-        console.log('updateButtonIcon', this.state.currentCat, this.state.currentEmo, this.button.icon);
+        console.log('updateButtonIcon', this.state.currentCat, this.state.currentEmo);
+        const emo = this.emoSet[this.state.currentEmo]
+        const sheet = emo.sheet
+        const frame = emo.frame
+        console.log('updateButtonIcon', sheet, frame);
         // если строка заполнена – показываем самолётик
         if (this.message && this.message.length === this.config.MESSAGE_LENGTH) {
             this.button.icon.setTexture('emo');
-            this.button.icon.setFrame(44); // самолётик 127 был
+            const planeFrame = this.emoSet['plane_black'].frame
+            this.button.icon.setFrame(planeFrame); // самолётик 
             this.button.icon.setScale(this.button.icon.defaults.scale);
         } else {
             if (this.categories[this.state.currentCat].name === 'WORDS') {
@@ -1303,8 +1445,11 @@ export default class EmoChat {
             } else {
                 this.button.icon.setTexture('emo');
                 this.button.icon.setScale(this.button.icon.defaults.scale);
-            }   
-            this.button.icon.setFrame(this.state.currentEmo);
+            }
+
+            // var 2
+            
+            this.button.icon.setFrame(frame);
         }
     }
     // вспомогательные методы
@@ -1370,6 +1515,9 @@ export default class EmoChat {
                         },
                     });
                 }
+                // button icon
+                // this.button.icon.scale = 0.8
+            
             } else {
                 const icon = this.button.icon
                 this.scene.tweens.add({
